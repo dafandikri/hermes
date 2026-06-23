@@ -7,7 +7,7 @@ SHELL := bash
 # Allow `make deploy-webapp HOST=hermes-vps`
 HOST ?= hermes-vps
 
-.PHONY: help setup gate lint fmt validate validate-agent-docs secrets-scan sast deploy-webapp dashboard swap configure-model configure-bots verify-runtime status autopilot hooks ci
+.PHONY: help setup gate lint fmt validate validate-current-design validate-agent-docs validate-lessons secrets-scan sast deploy-webapp dashboard swap configure-model configure-bots verify-runtime status autopilot hooks ci
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -22,7 +22,7 @@ setup: ## Install the toolchain (pre-commit via uv) and git hooks
 	pre-commit install-hooks
 	@echo "✓ harness ready — run 'make lint'"
 
-gate: ## THE deterministic quality gate (format, shellcheck, yaml, validate, secrets)
+gate: ## THE deterministic quality gate (format, shellcheck, yaml, design, docs, lessons, secrets)
 	./scripts/gate.sh
 
 lint: ## Run all linters via pre-commit on every file
@@ -37,8 +37,14 @@ fmt: ## Auto-format shell scripts in place
 validate: ## Validate infra configs (compose, Caddyfile, hermes config)
 	./scripts/validate-config.sh
 
+validate-current-design: ## Validate docs and infra match the current deployed design
+	./scripts/validate-current-design.sh
+
 validate-agent-docs: ## Validate AGENTS/CLAUDE/OPENCODE instruction entrypoints
 	./scripts/validate-agent-docs.sh
+
+validate-lessons: ## Validate the operational mistake log has guardrails + verification
+	./scripts/validate-lessons.sh
 
 secrets-scan: ## Scan the whole repo for committed secrets
 	pre-commit run gitleaks --all-files

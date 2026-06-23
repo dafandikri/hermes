@@ -19,6 +19,11 @@ Read [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) fir
   [`scripts/gate.sh`](scripts/gate.sh) — the single source of truth, mirrored by CI.
 - **Run live verification after deploy changes:** `make verify-runtime HOST=hermes-vps` must pass.
   A service being "active" is not enough; provider/model/auth/dashboard/gateway invariants must hold.
+- **Keep docs and infra current:** `make gate` runs `scripts/validate-current-design.sh`, which
+  fails if docs and committed infra drift from the active Hermes dashboard/Codex design.
+- **Log repeated or production-impacting mistakes:** update
+  [docs/operations/mistakes.md](docs/operations/mistakes.md) with impact, root cause, guardrail, and
+  verification before claiming the issue is closed.
 - **Never commit secrets.** Real values live only on the droplet (`/opt/hermes/.env`,
   `~/.hermes/.env`, `chmod 600`) and in provider dashboards. Repo carries only
   `infra/.env.example` placeholders; `gitleaks` will block leaks.

@@ -38,4 +38,11 @@ else
   rc=1
 fi
 
+if grep -q "validate-current-design.sh" AGENTS.md && grep -q "docs/operations/mistakes.md" AGENTS.md; then
+  ok "design/mistake-log enforcement is documented for agents"
+else
+  warn "AGENTS.md must document current-design and mistake-log enforcement"
+  rc=1
+fi
+
 [[ "$rc" -eq 0 ]] && ok "agent docs validated" || die "agent docs validation failed"

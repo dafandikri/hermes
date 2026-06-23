@@ -48,9 +48,21 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: current-design
+        name: docs and infra match current design
+        entry: ./scripts/validate-current-design.sh
+        language: system
+        pass_filenames: false
+
       - id: agent-docs
         name: agent docs stay universal
         entry: ./scripts/validate-agent-docs.sh
+        language: system
+        pass_filenames: false
+
+      - id: mistake-log
+        name: mistake log stays actionable
+        entry: ./scripts/validate-lessons.sh
         language: system
         pass_filenames: false
 

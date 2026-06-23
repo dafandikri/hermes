@@ -53,8 +53,9 @@ make configure-model HOST=hermes-vps
 make status HOST=hermes-vps
 ```
 
-`make gate` covers formatting, shellcheck, YAML lint, infra validation, agent-doc validation, and
-secret scanning. `make verify-runtime` proves the live system is not a false green: model/provider,
+`make gate` covers formatting, shellcheck, YAML lint, infra validation, current-design validation,
+agent-doc validation, mistake-log validation, and secret scanning. `make verify-runtime` proves the
+live system is not a false green: model/provider, auto-compression on, Codex auto-raise notice off,
 Codex auth, dashboard service, gateway service, and web edge auth must all pass.
 
 ## Common Commands
@@ -78,6 +79,12 @@ make configure-bots HOST=hermes-vps
 - Keep scripts idempotent and fail-fast.
 - Keep docs consistent with deployed reality. If the droplet differs from docs, update docs or
   fix the droplet before finishing.
+- Keep committed infra consistent with docs. `scripts/validate-current-design.sh` is the guard for
+  the current architecture: `openai-codex`, `openai/gpt-5.5`, auto-compression on, Codex auto-raise
+  notice off, dashboard loopback, Caddy host networking, edge basic-auth, and Host/Origin rewrites.
+- If a production mistake happens or repeats, update `docs/operations/mistakes.md` with impact,
+  root cause, guardrail, and verification. Do not claim completion until the guardrail is automated
+  or tied to a repo command.
 - Use local `.semgrep.yml` rules; do not depend on moving remote Semgrep packs.
 
 ## Agent-Specific Notes

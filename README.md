@@ -30,7 +30,7 @@ CLAUDE.md     Claude Code shim that points to AGENTS.md
 OPENCODE.md   opencode shim that points to AGENTS.md
 infra/        Config-as-code: docker-compose.yml, Caddyfile, systemd unit, .env.example
 scripts/      Idempotent ops scripts (deploy, configure, status, validate) + the gate
-docs/         Architecture + superpowers specs/plans
+docs/         Architecture, operations mistake log, and superpowers specs/plans
 .github/      CI (the gate, strict)
 Makefile      Developer entrypoint — run `make`
 ```
@@ -42,6 +42,8 @@ make setup     # install the toolchain (pre-commit, linters) + git hooks
 make gate      # run THE quality gate
 make sast      # local Semgrep rules
 make status    # health-check the live droplet
+make validate-current-design  # ensure docs and infra match the deployed design
+make validate-lessons  # enforce the mistake log
 ```
 
 ## Operating the droplet
@@ -56,6 +58,9 @@ make autopilot HOST=hermes-vps       # gate + SAST + model enforcement + runtime
 The runtime guard is intentionally strict. If `openai-codex` is selected but the
 model is blank, auth is logged out, the dashboard/gateway is down, or web auth no
 longer blocks unauthenticated access, it fails instead of reporting a false green.
+The active model is `openai/gpt-5.5`. Auto-compaction stays enabled
+(`compression.enabled=true`), while the repeated Codex GPT-5.5 auto-raise notice stays suppressed
+(`compression.codex_gpt55_autoraise=false`).
 
 Configuring the Hermes Agent bots (secrets read from your environment, never argv):
 
@@ -68,11 +73,16 @@ scripts/configure-hermes.sh hermes-vps
 
 ## Quality gate
 
-Every commit runs `pre-commit` (shellcheck, shfmt, yamllint, gitleaks, agent-doc validation).
+Every commit runs `pre-commit` (shellcheck, shfmt, yamllint, gitleaks, current-design validation,
+agent-doc validation, mistake-log validation).
 Every push runs the full gate locally. CI runs the same [`scripts/gate.sh`](scripts/gate.sh) in
-strict mode plus Semgrep SAST. Dependabot opens weekly update PRs for GitHub Actions and Docker
-images. See
+strict mode plus Semgrep SAST on pushes, pull requests, manual dispatch, and a weekly schedule.
+Dependabot opens weekly update PRs for GitHub Actions. See
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Production mistakes are tracked in [docs/operations/mistakes.md](docs/operations/mistakes.md).
+New production-impacting failures must add or update a lesson with root cause, guardrail, and a
+verification command before the work is considered complete.
 
 ## Secrets
 

@@ -22,6 +22,9 @@ Web UI   ─┘                                                          (no per
 - Runtime invariant: `provider: "openai-codex"` must have a non-empty model. The deployed model is
   `openai/gpt-5.5`; `scripts/configure-model.sh` enforces it and `scripts/verify-runtime.sh` fails
   if provider/model/auth/services drift.
+- Runtime invariant: `compression.enabled=true` keeps auto-compaction active, while
+  `compression.codex_gpt55_autoraise=false` suppresses the repeated Codex context-cap notice in
+  Telegram/Discord. `scripts/verify-runtime.sh` fails if either setting drifts.
 - Messaging gateway runs Telegram + Discord concurrently; web UI via `hermes dashboard` (port 9119,
   password-protected on public bind).
 - Allow-lists (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`) restrict access — the agent has
@@ -38,7 +41,8 @@ Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0
 - The web face is the **Hermes dashboard** (`hermes-dashboard.service`, systemd user unit), which
   runs on the same Codex subscription as the bots — **no API key, no separate admin account**.
 - The dashboard binds loopback (its own DNS-rebinding guard rejects other Host headers), so:
-  - Caddy runs `network_mode: host` to reach `127.0.0.1:9119` and rewrites `Host` to the bound value;
+  - Caddy runs `network_mode: host` to reach `127.0.0.1:9119`;
+  - Caddy rewrites upstream `Host` and `Origin` to the loopback dashboard origin;
   - **Caddy basic-auth** gates the edge (the dashboard skips auth on loopback);
   - applied via `scripts/switch-to-dashboard.sh` (idempotent: swap → free RAM → build → service →
     render Caddyfile with bcrypt creds → reload Caddy → verify 401-then-200 → run the runtime guard).
@@ -57,3 +61,10 @@ Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0
 - **Universal agent instructions** — `AGENTS.md` is canonical for Codex and other coding agents;
   `CLAUDE.md` and `OPENCODE.md` are thin entrypoints that point back to it. The gate validates this
   so future agents do not drift into conflicting instructions.
+- **Mistake log as a guardrail** — production-impacting mistakes are recorded in
+  [docs/operations/mistakes.md](operations/mistakes.md), and `scripts/validate-lessons.sh` fails the
+  gate unless each lesson has impact, root cause, guardrail, and verification.
+- **Current-design validation** — `scripts/validate-current-design.sh` fails the gate if docs and
+  committed infra stop describing the deployed architecture (`openai-codex`, `openai/gpt-5.5`,
+  auto-compression on, Codex auto-raise notice off, dashboard loopback, Caddy host networking, edge
+  auth, and Host/Origin rewrites).

@@ -13,10 +13,12 @@ source "scripts/lib.sh"
 HOST="${1:-hermes-vps}"
 HERMES_PROVIDER="${HERMES_PROVIDER:-openai-codex}"
 HERMES_MODEL="${HERMES_MODEL:-openai/gpt-5.5}"
+HERMES_COMPRESSION_ENABLED="${HERMES_COMPRESSION_ENABLED:-true}"
 HERMES_CODEX_GPT55_AUTORAISE="${HERMES_CODEX_GPT55_AUTORAISE:-false}"
 
 [[ -n "$HERMES_PROVIDER" ]] || die "HERMES_PROVIDER must not be empty"
 [[ -n "$HERMES_MODEL" ]] || die "HERMES_MODEL must not be empty"
+[[ "$HERMES_COMPRESSION_ENABLED" =~ ^(true|false)$ ]] || die "HERMES_COMPRESSION_ENABLED must be true or false"
 [[ "$HERMES_CODEX_GPT55_AUTORAISE" =~ ^(true|false)$ ]] || die "HERMES_CODEX_GPT55_AUTORAISE must be true or false"
 
 info "Configuring Hermes provider/model on $HOST"
@@ -37,10 +39,18 @@ def set_yaml_scalar(src: str, key: str, value: str) -> str:
 text = set_yaml_scalar(text, 'provider', '${HERMES_PROVIDER}')
 text = set_yaml_scalar(text, 'default', '${HERMES_MODEL}')
 path.write_text(text)
+
+model_block = re.search(r'^model:\n(?P<body>(?:  .*\n?)*)', text, re.MULTILINE)
+body = model_block.group('body') if model_block else ''
+for key in ('default', 'provider'):
+    match = re.search(rf'^  {key}:\s*(.*)$', body, re.MULTILINE)
+    if match:
+        print(f'  {key}: {match.group(1)}')
 PY
-grep -E '^  (provider|default):' ~/.hermes/config.yaml"
+"
 
 ssh_host "$HOST" "hermes config set compression.codex_gpt55_autoraise ${HERMES_CODEX_GPT55_AUTORAISE} >/dev/null"
+ssh_host "$HOST" "hermes config set compression.enabled ${HERMES_COMPRESSION_ENABLED} >/dev/null"
 
 ./scripts/verify-runtime.sh "$HOST" --skip-web
 ok "Hermes provider/model configured"

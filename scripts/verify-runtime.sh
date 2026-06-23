@@ -16,6 +16,7 @@ HOST="${1:-hermes-vps}"
 SKIP_WEB="${2:-}"
 EXPECTED_PROVIDER="${HERMES_PROVIDER:-openai-codex}"
 EXPECTED_MODEL="${HERMES_MODEL:-openai/gpt-5.5}"
+EXPECTED_COMPRESSION_ENABLED="${HERMES_COMPRESSION_ENABLED:-true}"
 EXPECTED_AUTORAISE="${HERMES_CODEX_GPT55_AUTORAISE:-false}"
 
 info "Verifying Hermes runtime invariants on $HOST"
@@ -35,19 +36,24 @@ print(val("default"))
 compression = re.search(r"^compression:\n(?P<body>(?:  .*\n?)*)", text, re.MULTILINE)
 body = compression.group("body") if compression else ""
 match = re.search(r"^  codex_gpt55_autoraise:\s*(.*)$", body, re.MULTILINE)
+enabled = re.search(r"^  enabled:\s*(.*)$", body, re.MULTILINE)
+print((enabled.group(1).strip().strip("\"'"'"'") if enabled else ""))
 print((match.group(1).strip().strip("\"'"'"'") if match else ""))'
 remote_reader_b64="$(printf '%s' "$remote_reader" | base64 | tr -d '\n')"
 state_output="$(ssh "$HOST" "printf '%s' '$remote_reader_b64' | base64 --decode | python3")"
 provider="$(printf '%s\n' "$state_output" | sed -n '1p')"
 model="$(printf '%s\n' "$state_output" | sed -n '2p')"
-autoraise="$(printf '%s\n' "$state_output" | sed -n '3p')"
+compression_enabled="$(printf '%s\n' "$state_output" | sed -n '3p')"
+autoraise="$(printf '%s\n' "$state_output" | sed -n '4p')"
 
 [[ "$provider" == "$EXPECTED_PROVIDER" ]] || die "provider mismatch: got '$provider', want '$EXPECTED_PROVIDER'"
 [[ -n "$model" ]] || die "Hermes model is blank; set HERMES_MODEL and run scripts/configure-model.sh"
 [[ "$model" == "$EXPECTED_MODEL" ]] || die "model mismatch: got '$model', want '$EXPECTED_MODEL'"
 ok "model/provider invariant holds (${provider} / ${model})"
+[[ "$compression_enabled" == "$EXPECTED_COMPRESSION_ENABLED" ]] || die "compression.enabled mismatch: got '$compression_enabled', want '$EXPECTED_COMPRESSION_ENABLED'"
+ok "auto-compression stays enabled (${compression_enabled})"
 [[ "$autoraise" == "$EXPECTED_AUTORAISE" ]] || die "compression.codex_gpt55_autoraise mismatch: got '$autoraise', want '$EXPECTED_AUTORAISE'"
-ok "Codex GPT-5.5 auto-raise notice setting holds (${autoraise})"
+ok "Codex GPT-5.5 auto-raise notice stays suppressed (${autoraise})"
 
 auth_status="$(ssh_host "$HOST" 'hermes auth status openai-codex 2>&1 | head -1')"
 [[ "$auth_status" == *"logged in"* ]] || die "openai-codex auth is not logged in: ${auth_status}"
