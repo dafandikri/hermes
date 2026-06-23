@@ -1,0 +1,19 @@
+# yamllint config — pragmatic, not pedantic.
+extends: default
+
+rules:
+  line-length:
+    max: 120
+    level: warning
+  document-start: disable
+  truthy:
+    # docker-compose / GitHub Actions use `on:` etc.
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+ignore: |
+  infra/hermes-config.example.yaml

@@ -1,0 +1,49 @@
+# Enforcement harness — runs on every commit. Install with: make setup && pre-commit install
+# Binary linters run as `system` hooks against tools installed by `make setup`
+# (shellcheck, shfmt, yamllint, gitleaks) — no Docker required, fast and deterministic.
+minimum_pre_commit_version: "3.5.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        exclude: ^infra/hermes-config\.example\.yaml$
+      - id: check-executables-have-shebangs
+      - id: check-added-large-files
+        args: [--maxkb=512]
+
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        args: [--severity=warning, --external-sources]
+        types: [shell]
+
+      - id: shfmt
+        name: shfmt
+        entry: shfmt
+        language: system
+        args: [-i, "2", -ci, -sr, -w]
+        types: [shell]
+
+      - id: yamllint
+        name: yamllint
+        entry: yamllint
+        language: system
+        args: [-c, .yamllint.yaml]
+        types: [yaml]
+
+      - id: gitleaks
+        name: gitleaks
+        entry: gitleaks dir --no-banner --redact --config .gitleaks.toml .
+        language: system
+        pass_filenames: false

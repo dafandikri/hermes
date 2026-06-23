@@ -1,0 +1,37 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEFAULT_MODELS=${DEFAULT_MODELS}
+      - WEBUI_AUTH=true
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP}
+    volumes:
+      - open-webui:/app/backend/data
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+      - ACME_EMAIL=${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - open-webui
+
+volumes:
+  open-webui:
+  caddy_data:
+  caddy_config:

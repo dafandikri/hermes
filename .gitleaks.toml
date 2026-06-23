@@ -1,0 +1,24 @@
+# gitleaks config — secret scanning enforcement.
+# Extends the built-in rules; adds an allowlist for documented placeholders.
+title = "hermes secret scan"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders and example values that are intentionally not secrets."
+regexes = [
+  '''sk-or-example-placeholder-replace-me''',
+  '''sk-or-REPLACE''',
+  '''sk-or-YOURKEY''',
+  '''REPLACE:FROM_BOTFATHER''',
+  '''8xxxxxxxxx:AAH''',
+  '''123456789''',
+  '''you@example\.com''',
+  '''assistant\.example\.com''',
+]
+paths = [
+  '''infra/\.env\.example''',
+  '''docs/.*\.md''',
+  '''README\.md''',
+]

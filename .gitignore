@@ -1,0 +1,6 @@
+infra/.env
+infra/INVENTORY.md
+*.bak
+
+# macOS
+.DS_Store

@@ -1,0 +1,16 @@
+[Unit]
+Description=Hermes Agent Gateway (Telegram)
+After=network.target
+
+[Service]
+Type=simple
+User=hermes
+WorkingDirectory=/home/hermes
+Environment="PATH=/home/hermes/.local/bin:/usr/bin:/bin"
+EnvironmentFile=/home/hermes/.hermes/.env
+ExecStart=/home/hermes/.local/bin/hermes gateway
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

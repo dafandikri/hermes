@@ -1,0 +1,56 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SHFMT_VERSION: v3.10.0
+  GITLEAKS_VERSION: 8.21.2
+
+jobs:
+  gate:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # gitleaks history scan
+
+      - name: Install linters
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          python -m pip install --quiet --upgrade yamllint
+          shfmt_bin="shfmt_${SHFMT_VERSION}_linux_amd64"
+          sudo curl -fsSL -o /usr/local/bin/shfmt \
+            "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/${shfmt_bin}"
+          sudo chmod +x /usr/local/bin/shfmt
+          gl_tar="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${gl_tar}" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+
+      - name: Run gate (strict)
+        env:
+          CI: "1"
+        run: ./scripts/gate.sh
+
+  sast:
+    name: Static analysis (semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep
+        run: >-
+          pipx run semgrep --config p/bash --config p/dockerfile --config p/secrets
+          --error --metrics=off scripts infra
