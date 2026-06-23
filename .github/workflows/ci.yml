@@ -22,7 +22,7 @@ jobs:
     name: Quality gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # gitleaks history scan
 
@@ -49,6 +49,6 @@ jobs:
     name: Static analysis (semgrep)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Semgrep
         run: pipx run semgrep --config .semgrep.yml --error --metrics=off scripts infra
