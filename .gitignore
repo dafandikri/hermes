@@ -4,3 +4,10 @@ infra/INVENTORY.md
 
 # macOS
 .DS_Store
+
+# Root-level dropped/generated media should not live in this infra repo.
+/*.gif
+/*.jpg
+/*.jpeg
+/*.png
+/*.webp
