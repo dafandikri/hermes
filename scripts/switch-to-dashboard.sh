@@ -80,11 +80,12 @@ rendered="${template//__DASH_USER__/$DASH_USER}"
 rendered="${rendered//__DASH_HASH__/$dash_hash}"
 printf '%s\n' "$rendered" | ssh "$HOST" "cat > ${REMOTE_DIR}/Caddyfile"
 
-# 6. apply: copy compose (recreates caddy if its service def changed) AND reload Caddy's
-#    in-memory config (compose won't restart caddy when only the mounted Caddyfile changed).
-info "Applying new Caddy config (recreate if needed + graceful reload)"
+# 6. apply: copy compose and force-recreate Caddy. Caddyfile is a file bind mount; if an
+#    operator edits it with inode-replacing tools (`sed -i`, temp+mv), reload can keep seeing
+#    the old mounted inode. Recreate guarantees the container sees the current file path.
+info "Applying new Caddy config (force-recreate for file bind mount correctness)"
 scp -q infra/docker-compose.yml "$HOST:${REMOTE_DIR}/"
-ssh "$HOST" "cd ${REMOTE_DIR} && sudo docker compose up -d caddy && sudo docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile"
+ssh "$HOST" "cd ${REMOTE_DIR} && sudo docker compose up -d --force-recreate caddy"
 
 # 7. verify the edge gate: no creds -> 401, with creds -> not 401
 domain="$(ssh "$HOST" "grep ^DOMAIN ${REMOTE_DIR}/.env | cut -d= -f2")"

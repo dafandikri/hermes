@@ -16,6 +16,7 @@ HOST="${1:-hermes-vps}"
 SKIP_WEB="${2:-}"
 EXPECTED_PROVIDER="${HERMES_PROVIDER:-openai-codex}"
 EXPECTED_MODEL="${HERMES_MODEL:-openai/gpt-5.5}"
+EXPECTED_AUTORAISE="${HERMES_CODEX_GPT55_AUTORAISE:-false}"
 
 info "Verifying Hermes runtime invariants on $HOST"
 
@@ -29,16 +30,24 @@ def val(key: str) -> str:
     return (match.group(1).strip().strip("\"'"'"'") if match else "")
 
 print(val("provider"))
-print(val("default"))'
+print(val("default"))
+
+compression = re.search(r"^compression:\n(?P<body>(?:  .*\n?)*)", text, re.MULTILINE)
+body = compression.group("body") if compression else ""
+match = re.search(r"^  codex_gpt55_autoraise:\s*(.*)$", body, re.MULTILINE)
+print((match.group(1).strip().strip("\"'"'"'") if match else ""))'
 remote_reader_b64="$(printf '%s' "$remote_reader" | base64 | tr -d '\n')"
 state_output="$(ssh "$HOST" "printf '%s' '$remote_reader_b64' | base64 --decode | python3")"
 provider="$(printf '%s\n' "$state_output" | sed -n '1p')"
 model="$(printf '%s\n' "$state_output" | sed -n '2p')"
+autoraise="$(printf '%s\n' "$state_output" | sed -n '3p')"
 
 [[ "$provider" == "$EXPECTED_PROVIDER" ]] || die "provider mismatch: got '$provider', want '$EXPECTED_PROVIDER'"
 [[ -n "$model" ]] || die "Hermes model is blank; set HERMES_MODEL and run scripts/configure-model.sh"
 [[ "$model" == "$EXPECTED_MODEL" ]] || die "model mismatch: got '$model', want '$EXPECTED_MODEL'"
 ok "model/provider invariant holds (${provider} / ${model})"
+[[ "$autoraise" == "$EXPECTED_AUTORAISE" ]] || die "compression.codex_gpt55_autoraise mismatch: got '$autoraise', want '$EXPECTED_AUTORAISE'"
+ok "Codex GPT-5.5 auto-raise notice setting holds (${autoraise})"
 
 auth_status="$(ssh_host "$HOST" 'hermes auth status openai-codex 2>&1 | head -1')"
 [[ "$auth_status" == *"logged in"* ]] || die "openai-codex auth is not logged in: ${auth_status}"
@@ -64,6 +73,59 @@ if [[ "$SKIP_WEB" != "--skip-web" ]]; then
     with_auth="$(curl -sS -u "${DASH_USER}:${DASH_PASS}" -o /dev/null -w '%{http_code}' "https://${domain}/" || true)"
     [[ "$with_auth" == "200" ]] || die "web dashboard auth check failed: got ${with_auth}, want 200"
     ok "web dashboard opens with supplied credentials"
+
+    ws_status="$(
+      DASH_DOMAIN="$domain" DASH_USER="$DASH_USER" DASH_PASS="$DASH_PASS" python3 - << 'PY'
+import base64
+import os
+import re
+import socket
+import ssl
+import sys
+import urllib.request
+
+domain = os.environ["DASH_DOMAIN"]
+user = os.environ["DASH_USER"]
+password = os.environ["DASH_PASS"]
+creds = base64.b64encode(f"{user}:{password}".encode()).decode()
+
+req = urllib.request.Request(
+    f"https://{domain}/",
+    headers={"Authorization": f"Basic {creds}"},
+)
+html = urllib.request.urlopen(req, timeout=15).read().decode()
+match = re.search(r'__HERMES_SESSION_TOKEN__="([^"]+)"', html)
+if not match:
+    print("no-session-token")
+    sys.exit(1)
+
+token = match.group(1)
+key = base64.b64encode(os.urandom(16)).decode()
+request = (
+    f"GET /api/pty?token={token}&channel=runtime-check HTTP/1.1\r\n"
+    f"Host: {domain}\r\n"
+    "Upgrade: websocket\r\n"
+    "Connection: Upgrade\r\n"
+    f"Sec-WebSocket-Key: {key}\r\n"
+    "Sec-WebSocket-Version: 13\r\n"
+    f"Origin: https://{domain}\r\n"
+    f"Authorization: Basic {creds}\r\n"
+    "\r\n"
+).encode()
+
+ctx = ssl.create_default_context()
+with socket.create_connection((domain, 443), timeout=15) as sock:
+    with ctx.wrap_socket(sock, server_hostname=domain) as tls:
+        tls.sendall(request)
+        response = tls.recv(4096).decode("latin1", errors="replace")
+
+status = response.split("\r\n", 1)[0]
+print(status)
+if " 101 " not in status:
+    sys.exit(1)
+PY
+    )" || die "dashboard WebSocket/PTY check failed: ${ws_status:-no response}"
+    ok "dashboard WebSocket/PTY opens (${ws_status})"
   else
     warn "DASH_USER/DASH_PASS not set; skipped authenticated 200 check"
   fi
