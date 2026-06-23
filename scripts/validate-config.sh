@@ -21,7 +21,14 @@ else
 fi
 
 info "Validating infra/Caddyfile"
-if command -v docker > /dev/null 2>&1; then
+if command -v caddy > /dev/null 2>&1; then
+  if caddy validate --config infra/Caddyfile --adapter caddyfile > /dev/null 2>&1; then
+    ok "Caddyfile is valid"
+  else
+    warn "Caddyfile validation failed"
+    rc=1
+  fi
+elif command -v docker > /dev/null 2>&1 && docker info > /dev/null 2>&1; then
   if docker run --rm -v "$PWD/infra/Caddyfile:/etc/caddy/Caddyfile:ro" \
     caddy:2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile > /dev/null 2>&1; then
     ok "Caddyfile is valid"
@@ -29,8 +36,11 @@ if command -v docker > /dev/null 2>&1; then
     warn "Caddyfile validation failed"
     rc=1
   fi
+elif [[ -n "${CI:-}" ]]; then
+  warn "neither local caddy nor a usable Docker daemon is available for Caddyfile validation"
+  rc=1
 else
-  warn "docker not installed locally — skipping Caddyfile validation"
+  warn "skipping Caddyfile validation locally (install caddy or start Docker Desktop); CI still enforces it"
 fi
 
 info "Checking required infra files exist"
