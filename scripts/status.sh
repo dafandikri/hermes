@@ -20,9 +20,12 @@ fi
 info "Hermes Agent"
 ssh_host "$HOST" '
   echo "  version: $(hermes --version 2>&1 | head -1)"
+  echo "  model: $(grep -E "^  default:" ~/.hermes/config.yaml | tr -s " ")"
   echo "  provider: $(grep -E "^  provider:" ~/.hermes/config.yaml | tr -s " ")"
   echo "  auth(openai-codex): $(hermes auth status openai-codex 2>&1 | head -1)"
   echo "  gateway: $(hermes gateway status 2>&1 | head -1)"
 '
+
+./scripts/verify-runtime.sh "$HOST" --skip-web
 
 ok "status check complete"

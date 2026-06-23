@@ -26,10 +26,15 @@ first, auto-fixes formatting locally, and is strict (`CI=1`, no mutation) in CI:
 ```bash
 make gate     # run it
 make sast     # semgrep static analysis (separate, slower)
+make verify-runtime HOST=hermes-vps  # live runtime invariants after deploy changes
 ```
 
 `pre-commit` runs the same linters on staged files at commit time. CI (`.github/workflows/ci.yml`)
 runs `gate.sh` strict + semgrep on every push/PR.
+
+`make verify-runtime` is the live-system guard. Run it after any change that touches Hermes Agent
+provider/model, dashboard, Caddy, or gateway behavior. It fails on false-green states such as
+`openai-codex` with a blank model.
 
 ## Conventions
 
@@ -43,4 +48,5 @@ runs `gate.sh` strict + semgrep on every push/PR.
 
 ```bash
 make gate     # must print "✅ GATE PASSED"
+make verify-runtime HOST=hermes-vps  # after live infra changes
 ```

@@ -19,6 +19,9 @@ Web UI   ─┘                                                          (no per
 - Official `hermes-agent` v0.17.0, installed as user `hermes` (`~/.local/bin/hermes`, config `~/.hermes/`).
 - `provider: "openai-codex"` in `~/.hermes/config.yaml`; authenticated via
   `hermes auth add openai-codex --type oauth --manual-paste`.
+- Runtime invariant: `provider: "openai-codex"` must have a non-empty model. The deployed model is
+  `openai/gpt-5.5`; `scripts/configure-model.sh` enforces it and `scripts/verify-runtime.sh` fails
+  if provider/model/auth/services drift.
 - Messaging gateway runs Telegram + Discord concurrently; web UI via `hermes dashboard` (port 9119,
   password-protected on public bind).
 - Allow-lists (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`) restrict access — the agent has
@@ -38,7 +41,7 @@ Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0
   - Caddy runs `network_mode: host` to reach `127.0.0.1:9119` and rewrites `Host` to the bound value;
   - **Caddy basic-auth** gates the edge (the dashboard skips auth on loopback);
   - applied via `scripts/switch-to-dashboard.sh` (idempotent: swap → free RAM → build → service →
-    render Caddyfile with bcrypt creds → reload Caddy → verify 401-then-200).
+    render Caddyfile with bcrypt creds → reload Caddy → verify 401-then-200 → run the runtime guard).
 - **Open WebUI** (the original Track B) stays defined in compose but is **stopped** (it needed a model
   API key; the subscription can't drive it). Reverting = restore the open-webui `Caddyfile` + bridge
   networking and `docker compose up -d open-webui`.

@@ -33,6 +33,9 @@ fi
 # 1. swap safety net
 ./scripts/ensure-swap.sh "$HOST"
 
+# 1b. model/auth invariant — the dashboard is useless if provider/model drift.
+./scripts/configure-model.sh "$HOST"
+
 # 2. free RAM — stop Open WebUI (kept defined; the dashboard replaces it as the web face)
 info "Stopping Open WebUI to free memory (container kept, not removed)"
 ssh "$HOST" "cd ${REMOTE_DIR} && sudo docker compose stop open-webui > /dev/null 2>&1 || true"
@@ -91,6 +94,12 @@ with_auth="$(curl -s -u "${DASH_USER}:${dash_pass}" -o /dev/null -w '%{http_code
 info "Gate check — no-auth=${no_auth} (want 401), with-auth=${with_auth} (want not 401)"
 [ "$no_auth" = 401 ] && ok "edge gate blocks unauthenticated access" || warn "expected 401 without creds, got ${no_auth}"
 [ "$with_auth" != 401 ] && ok "edge gate opens with credentials (status ${with_auth})" || warn "auth rejected valid credentials"
+
+if [[ "$with_auth" == 200 ]]; then
+  DASH_USER="$DASH_USER" DASH_PASS="$dash_pass" ./scripts/verify-runtime.sh "$HOST"
+else
+  ./scripts/verify-runtime.sh "$HOST" --skip-web
+fi
 
 ok "dashboard is now the web app at https://${domain}"
 if [ "$generated" = 1 ]; then

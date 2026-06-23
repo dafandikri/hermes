@@ -42,11 +42,17 @@ make status    # health-check the live droplet
 ```bash
 make deploy-webapp HOST=hermes-vps   # refresh the Caddy + Open WebUI stack
 make status HOST=hermes-vps          # both tracks at a glance
+make verify-runtime HOST=hermes-vps  # fail-fast live guard: model/auth/services/web gate
 ```
+
+The runtime guard is intentionally strict. If `openai-codex` is selected but the
+model is blank, auth is logged out, the dashboard/gateway is down, or web auth no
+longer blocks unauthenticated access, it fails instead of reporting a false green.
 
 Configuring the Hermes Agent bots (secrets read from your environment, never argv):
 
 ```bash
+make configure-model HOST=hermes-vps
 export TELEGRAM_BOT_TOKEN=...  TELEGRAM_ALLOWED_USERS=<your-id>
 export DISCORD_BOT_TOKEN=...   DISCORD_ALLOWED_USERS=<your-id>   # optional
 scripts/configure-hermes.sh hermes-vps

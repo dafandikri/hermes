@@ -15,6 +15,8 @@ source "scripts/lib.sh"
 
 HOST="${1:-hermes-vps}"
 
+./scripts/configure-model.sh "$HOST"
+
 # Collect whichever platform secrets are present in the environment.
 declare -a pairs=()
 [[ -n "${TELEGRAM_BOT_TOKEN:-}" ]] && pairs+=("TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}")
@@ -54,5 +56,7 @@ printf '%s\n' "${pairs[@]}" |
 
 info "Installing + starting the gateway service"
 ssh_host "$HOST" 'yes | hermes gateway install >/dev/null 2>&1 || true; hermes gateway start >/dev/null 2>&1 || true; hermes gateway status 2>&1 | head -5'
+
+./scripts/verify-runtime.sh "$HOST" --skip-web
 
 ok "gateway configured — message your bot to test"

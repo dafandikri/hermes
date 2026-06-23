@@ -7,7 +7,7 @@ SHELL := bash
 # Allow `make deploy-webapp HOST=hermes-vps`
 HOST ?= hermes-vps
 
-.PHONY: help setup gate lint fmt validate secrets-scan sast deploy-webapp dashboard swap configure-bots status hooks ci
+.PHONY: help setup gate lint fmt validate secrets-scan sast deploy-webapp dashboard swap configure-model configure-bots verify-runtime status hooks ci
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -49,8 +49,14 @@ dashboard: ## Switch the public web app to the subscription-powered Hermes dashb
 swap: ## Ensure a swapfile exists on HOST
 	./scripts/ensure-swap.sh "$(HOST)"
 
+configure-model: ## Enforce Hermes provider/model on HOST
+	./scripts/configure-model.sh "$(HOST)"
+
 configure-bots: ## Wire Telegram/Discord secrets (from env) + start the gateway on HOST
 	./scripts/configure-hermes.sh "$(HOST)"
+
+verify-runtime: ## Verify live Hermes invariants on HOST (model/auth/services/web gate)
+	./scripts/verify-runtime.sh "$(HOST)"
 
 status: ## Health-check both tracks (webapp + Hermes Agent) on HOST
 	./scripts/status.sh "$(HOST)"
