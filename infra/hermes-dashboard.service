@@ -1,0 +1,17 @@
+[Unit]
+Description=Hermes Agent Dashboard (web UI on the Codex subscription)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/hermes
+Environment="PATH=/home/hermes/.local/bin:/usr/bin:/bin"
+# Loopback bind only; exposure is via Caddy with edge basic-auth. --skip-build reuses the
+# dist that switch-to-dashboard.sh pre-builds, so the service starts fast and never builds
+# under systemd (which could crashloop on a slow build).
+ExecStart=/home/hermes/.local/bin/hermes dashboard --host 127.0.0.1 --port 9119 --no-open --skip-build
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

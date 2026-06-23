@@ -24,16 +24,24 @@ Web UI   ─┘                                                          (no per
 - Allow-lists (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`) restrict access — the agent has
   terminal/file tools, so this is a hard security requirement.
 
-## Track B — Open WebUI (optional web app)
+## Track B — Web dashboard (on the subscription)
 
 ```
-Browser ─▶ Caddy (TLS, Let's Encrypt) ─▶ Open WebUI ─▶ OpenAI-compatible API (OpenRouter/OpenAI)
+Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0.1:9119 ─▶ ChatGPT subscription
 ```
 
-- `docker compose` stack in `/opt/hermes` (`caddy` + `open-webui`), `restart: unless-stopped`.
 - Public HTTPS at `assistant.dafandikri.tech` (DNS at Cloudflare, **DNS-only / grey-cloud** so
   Caddy's HTTP-01 challenge works; orange-cloud proxy would break it).
-- Requires a model API key in `/opt/hermes/.env` — a ChatGPT subscription cannot drive Open WebUI.
+- The web face is the **Hermes dashboard** (`hermes-dashboard.service`, systemd user unit), which
+  runs on the same Codex subscription as the bots — **no API key, no separate admin account**.
+- The dashboard binds loopback (its own DNS-rebinding guard rejects other Host headers), so:
+  - Caddy runs `network_mode: host` to reach `127.0.0.1:9119` and rewrites `Host` to the bound value;
+  - **Caddy basic-auth** gates the edge (the dashboard skips auth on loopback);
+  - applied via `scripts/switch-to-dashboard.sh` (idempotent: swap → free RAM → build → service →
+    render Caddyfile with bcrypt creds → reload Caddy → verify 401-then-200).
+- **Open WebUI** (the original Track B) stays defined in compose but is **stopped** (it needed a model
+  API key; the subscription can't drive it). Reverting = restore the open-webui `Caddyfile` + bridge
+  networking and `docker compose up -d open-webui`.
 
 ## Decision log
 

@@ -18,9 +18,11 @@ services:
     image: caddy:2
     container_name: caddy
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    # Host networking so Caddy can reach the Hermes dashboard on the host's loopback
+    # (127.0.0.1:9119). The dashboard binds loopback only (its own guidance: "bind 127.0.0.1
+    # + tunnel"); host-net Caddy is that tunnel, with edge basic-auth in the Caddyfile. Caddy
+    # binds host 80/443 directly, so the explicit ports mapping is not used in this mode.
+    network_mode: host
     environment:
       - DOMAIN=${DOMAIN}
       - ACME_EMAIL=${ACME_EMAIL}
@@ -28,8 +30,6 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on:
-      - open-webui
 
 volumes:
   open-webui:

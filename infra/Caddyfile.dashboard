@@ -1,0 +1,23 @@
+# Caddy config for the subscription-powered Hermes dashboard (replaces Open WebUI as the
+# public web face). The dashboard binds loopback and assumes "local = trusted", so exposing
+# it requires an auth gate HERE — basic-auth at the edge — or it would be an open door.
+#
+# __DASH_USER__ and __DASH_HASH__ are substituted on the droplet by switch-to-dashboard.sh
+# (bcrypt hash via `caddy hash-password`); the rendered file lives only at /opt/hermes/Caddyfile,
+# never in git. Caddy runs on the host network (see compose) so it reaches the loopback dashboard.
+{
+	email {$ACME_EMAIL:admin@example.com}
+}
+
+{$DOMAIN:localhost} {
+	encode gzip
+	basic_auth {
+		__DASH_USER__ __DASH_HASH__
+	}
+	# The dashboard rejects any Host header other than the one it bound to (DNS-rebinding
+	# guard), so rewrite it to the loopback host:port. The browser still uses the public
+	# origin for its own same-origin API/WS calls, which Caddy re-proxies through here.
+	reverse_proxy 127.0.0.1:9119 {
+		header_up Host 127.0.0.1:9119
+	}
+}

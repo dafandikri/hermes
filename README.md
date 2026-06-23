@@ -10,8 +10,9 @@ Two independent tracks share one hardened droplet (`sgp1`, Ubuntu 24.04, 2 GB):
 
 | Track | You reach it via | Auth | Model billing |
 | --- | --- | --- | --- |
-| **Hermes Agent** | Telegram, Discord, and the `hermes dashboard` web UI | Your messaging identity (allow-listed user IDs) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost) |
-| **Open WebUI** *(optional)* | `https://assistant.dafandikri.tech` | Admin account (first signup) | A model API key (OpenRouter/OpenAI) — subscription does **not** work here |
+| **Hermes Agent** | Telegram, Discord | Your messaging identity (allow-listed user IDs) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost) |
+| **Web dashboard** | `https://assistant.dafandikri.tech` (`hermes dashboard` behind Caddy) | Caddy basic-auth at the edge | **Same ChatGPT subscription** — no API key |
+| Open WebUI *(stopped, revertable)* | — | — | would need a model API key; subscription can't drive it |
 
 > **Why not self-host the weights?** Hermes is a frontier open model; running the
 > 70B/405B needs a GPU (~$288/mo always-on). Hosting the *app* and reaching the

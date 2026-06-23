@@ -7,7 +7,7 @@ SHELL := bash
 # Allow `make deploy-webapp HOST=hermes-vps`
 HOST ?= hermes-vps
 
-.PHONY: help setup gate lint fmt validate secrets-scan sast deploy-webapp status hooks ci
+.PHONY: help setup gate lint fmt validate secrets-scan sast deploy-webapp dashboard swap configure-bots status hooks ci
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -42,6 +42,15 @@ secrets-scan: ## Scan the whole repo for committed secrets
 
 deploy-webapp: ## Deploy/refresh the Caddy + Open WebUI stack on HOST
 	./scripts/deploy-webapp.sh "$(HOST)"
+
+dashboard: ## Switch the public web app to the subscription-powered Hermes dashboard on HOST
+	./scripts/switch-to-dashboard.sh "$(HOST)"
+
+swap: ## Ensure a swapfile exists on HOST
+	./scripts/ensure-swap.sh "$(HOST)"
+
+configure-bots: ## Wire Telegram/Discord secrets (from env) + start the gateway on HOST
+	./scripts/configure-hermes.sh "$(HOST)"
 
 status: ## Health-check both tracks (webapp + Hermes Agent) on HOST
 	./scripts/status.sh "$(HOST)"
