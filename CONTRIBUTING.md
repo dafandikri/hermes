@@ -25,7 +25,7 @@ first, auto-fixes formatting locally, and is strict (`CI=1`, no mutation) in CI:
 
 ```bash
 make gate     # run it
-make sast     # semgrep static analysis (separate, slower)
+make sast     # semgrep static analysis using local .semgrep.yml (separate, slower)
 make verify-runtime HOST=hermes-vps  # live runtime invariants after deploy changes
 ```
 

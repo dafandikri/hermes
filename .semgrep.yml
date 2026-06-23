@@ -1,0 +1,27 @@
+rules:
+  - id: shell-no-curl-pipe-shell
+    languages: [generic]
+    severity: ERROR
+    message: Do not pipe downloaded scripts directly into a shell. Download, inspect, then execute.
+    paths:
+      include:
+        - /scripts/*.sh
+    pattern-regex: '\bcurl\b[^\n|]*\|\s*(sudo\s+)?(bash|sh)\b'
+
+  - id: shell-no-strict-host-key-disable
+    languages: [generic]
+    severity: ERROR
+    message: Do not disable SSH host key checking in committed ops scripts.
+    paths:
+      include:
+        - /scripts/*.sh
+    pattern-regex: 'StrictHostKeyChecking=(no|false)'
+
+  - id: shell-no-world-writable-perms
+    languages: [generic]
+    severity: ERROR
+    message: Avoid world-writable permissions in infra scripts.
+    paths:
+      include:
+        - /scripts/*.sh
+    pattern-regex: '\bchmod\s+(-R\s+)?[0-7]*[2367](\s|$)'

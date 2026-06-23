@@ -51,6 +51,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Semgrep
-        run: >-
-          pipx run semgrep --config p/bash --config p/dockerfile --config p/secrets
-          --error --metrics=off scripts infra
+        run: pipx run semgrep --config .semgrep.yml --error --metrics=off scripts infra

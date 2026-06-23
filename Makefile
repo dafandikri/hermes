@@ -28,8 +28,7 @@ lint: ## Run all linters via pre-commit on every file
 	pre-commit run --all-files
 
 sast: ## Static analysis (semgrep) over scripts + infra
-	uvx semgrep --config p/bash --config p/dockerfile --config p/secrets \
-		--error --metrics=off scripts infra
+	uvx semgrep --config .semgrep.yml --error --metrics=off scripts infra
 
 fmt: ## Auto-format shell scripts in place
 	pre-commit run shfmt --all-files || true
