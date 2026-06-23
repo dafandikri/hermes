@@ -79,6 +79,7 @@ template="$(cat infra/Caddyfile.dashboard)"
 rendered="${template//__DASH_USER__/$DASH_USER}"
 rendered="${rendered//__DASH_HASH__/$dash_hash}"
 printf '%s\n' "$rendered" | ssh "$HOST" "cat > ${REMOTE_DIR}/Caddyfile"
+ssh "$HOST" "sudo docker run --rm -v ${REMOTE_DIR}/Caddyfile:/etc/caddy/Caddyfile caddy:2 caddy fmt --overwrite /etc/caddy/Caddyfile >/dev/null"
 
 # 6. apply: copy compose and force-recreate Caddy. Caddyfile is a file bind mount; if an
 #    operator edits it with inode-replacing tools (`sed -i`, temp+mv), reload can keep seeing
