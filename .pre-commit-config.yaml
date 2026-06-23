@@ -47,3 +47,16 @@ repos:
         entry: gitleaks dir --no-banner --redact --config .gitleaks.toml .
         language: system
         pass_filenames: false
+
+      - id: agent-docs
+        name: agent docs stay universal
+        entry: ./scripts/validate-agent-docs.sh
+        language: system
+        pass_filenames: false
+
+      - id: full-gate-pre-push
+        name: full gate before push
+        entry: ./scripts/gate.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

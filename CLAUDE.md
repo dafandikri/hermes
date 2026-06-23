@@ -1,12 +1,17 @@
-# CLAUDE.md — working in this repo
+# CLAUDE.md
 
-Project-specific guidance for AI agents. Global preferences still apply.
+Claude Code entrypoint for this repository.
+
+Use [AGENTS.md](AGENTS.md) as the canonical instruction file. This file exists because Claude Code
+loads `CLAUDE.md`; it should stay a thin shim plus Claude-specific reminders.
+
+If anything here conflicts with `AGENTS.md`, `AGENTS.md` wins and this file should be corrected.
 
 ## What this is
 
 Infrastructure-as-code for a self-hosted Hermes personal assistant on a DigitalOcean droplet.
 Bash + YAML + Docker + Caddy. No application source — do not scaffold a Node/TS app here.
-Read [docs/architecture.md](docs/architecture.md) first; it is the source of truth.
+Read [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) first.
 
 ## Non-negotiables
 

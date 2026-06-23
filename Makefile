@@ -7,7 +7,7 @@ SHELL := bash
 # Allow `make deploy-webapp HOST=hermes-vps`
 HOST ?= hermes-vps
 
-.PHONY: help setup gate lint fmt validate secrets-scan sast deploy-webapp dashboard swap configure-model configure-bots verify-runtime status hooks ci
+.PHONY: help setup gate lint fmt validate validate-agent-docs secrets-scan sast deploy-webapp dashboard swap configure-model configure-bots verify-runtime status autopilot hooks ci
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -18,6 +18,7 @@ setup: ## Install the toolchain (pre-commit via uv) and git hooks
 	@command -v uv >/dev/null || { echo "uv is required: https://docs.astral.sh/uv/"; exit 1; }
 	uv tool install --upgrade pre-commit
 	pre-commit install
+	pre-commit install --hook-type pre-push
 	pre-commit install-hooks
 	@echo "✓ harness ready — run 'make lint'"
 
@@ -35,6 +36,9 @@ fmt: ## Auto-format shell scripts in place
 
 validate: ## Validate infra configs (compose, Caddyfile, hermes config)
 	./scripts/validate-config.sh
+
+validate-agent-docs: ## Validate AGENTS/CLAUDE/OPENCODE instruction entrypoints
+	./scripts/validate-agent-docs.sh
 
 secrets-scan: ## Scan the whole repo for committed secrets
 	pre-commit run gitleaks --all-files
@@ -60,7 +64,11 @@ verify-runtime: ## Verify live Hermes invariants on HOST (model/auth/services/we
 status: ## Health-check both tracks (webapp + Hermes Agent) on HOST
 	./scripts/status.sh "$(HOST)"
 
+autopilot: ## Automated local maintenance: gate, SAST, runtime verify, status
+	./scripts/auto-maintain.sh "$(HOST)"
+
 hooks: ## Re-install git hooks (after cloning)
 	pre-commit install
+	pre-commit install --hook-type pre-push
 
-ci: lint validate ## What CI runs: lint + validate
+ci: gate sast ## What CI runs: gate + SAST

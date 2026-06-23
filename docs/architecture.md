@@ -54,3 +54,6 @@ Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0
   with no per-token billing (personal-use OAuth; not for resale/multi-user).
 - **nip.io → real domain** — bootstrapped on `nip.io` for instant TLS, then moved to
   `assistant.dafandikri.tech`.
+- **Universal agent instructions** — `AGENTS.md` is canonical for Codex and other coding agents;
+  `CLAUDE.md` and `OPENCODE.md` are thin entrypoints that point back to it. The gate validates this
+  so future agents do not drift into conflicting instructions.

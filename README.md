@@ -4,6 +4,9 @@ A self-hosted AI personal assistant on a DigitalOcean droplet, powered by the
 [Nous Research Hermes](https://github.com/NousResearch/hermes-agent) family.
 Infrastructure-as-code, with an enforced quality gate.
 
+This repository is safe to showcase publicly because secrets are kept out of git and enforced by
+`gitleaks`. Operational details are intentionally documented; credentials are not.
+
 ## What's deployed
 
 Two independent tracks share one hardened droplet (`sgp1`, Ubuntu 24.04, 2 GB):
@@ -22,6 +25,9 @@ Two independent tracks share one hardened droplet (`sgp1`, Ubuntu 24.04, 2 GB):
 ## Repository layout
 
 ```
+AGENTS.md     Canonical repo instructions for Codex, Claude, opencode, and other agents
+CLAUDE.md     Claude Code shim that points to AGENTS.md
+OPENCODE.md   opencode shim that points to AGENTS.md
 infra/        Config-as-code: docker-compose.yml, Caddyfile, systemd unit, .env.example
 scripts/      Idempotent ops scripts (deploy, configure, status, validate) + the gate
 docs/         Architecture + superpowers specs/plans
@@ -33,7 +39,8 @@ Makefile      Developer entrypoint — run `make`
 
 ```bash
 make setup     # install the toolchain (pre-commit, linters) + git hooks
-make gate      # run THE quality gate (format, shellcheck, yaml, validate, secrets)
+make gate      # run THE quality gate
+make sast      # local Semgrep rules
 make status    # health-check the live droplet
 ```
 
@@ -43,6 +50,7 @@ make status    # health-check the live droplet
 make deploy-webapp HOST=hermes-vps   # refresh the Caddy + Open WebUI stack
 make status HOST=hermes-vps          # both tracks at a glance
 make verify-runtime HOST=hermes-vps  # fail-fast live guard: model/auth/services/web gate
+make autopilot HOST=hermes-vps       # gate + SAST + model enforcement + runtime verify + status
 ```
 
 The runtime guard is intentionally strict. If `openai-codex` is selected but the
@@ -60,8 +68,10 @@ scripts/configure-hermes.sh hermes-vps
 
 ## Quality gate
 
-Every commit runs `pre-commit` (shellcheck, shfmt, yamllint, gitleaks). CI runs the
-same [`scripts/gate.sh`](scripts/gate.sh) in strict mode plus semgrep SAST. See
+Every commit runs `pre-commit` (shellcheck, shfmt, yamllint, gitleaks, agent-doc validation).
+Every push runs the full gate locally. CI runs the same [`scripts/gate.sh`](scripts/gate.sh) in
+strict mode plus Semgrep SAST. Dependabot opens weekly update PRs for GitHub Actions and Docker
+images. See
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Secrets

@@ -12,6 +12,9 @@ You also need the binary linters on PATH for `make gate`:
 `shellcheck`, `shfmt`, `yamllint`, `gitleaks` (macOS: `brew install shellcheck shfmt gitleaks`;
 `yamllint` via `uv tool install yamllint`).
 
+`make setup` installs both `pre-commit` and `pre-push` hooks. The pre-push hook runs the full gate,
+so broken infra or missing universal agent instructions do not leave the machine quietly.
+
 ## The gate — single source of truth
 
 [`scripts/gate.sh`](scripts/gate.sh) is THE gate. It runs fast-to-slow so cheap failures surface
@@ -21,16 +24,19 @@ first, auto-fixes formatting locally, and is strict (`CI=1`, no mutation) in CI:
 2. **shellcheck** — `--severity=warning --external-sources`
 3. **yaml lint** — `yamllint -c .yamllint.yaml`
 4. **validate infra** — `docker compose config` + `caddy validate`
-5. **secret scan** — `gitleaks`
+5. **validate agent docs** — `AGENTS.md`, `CLAUDE.md`, and `OPENCODE.md` stay present and consistent
+6. **secret scan** — `gitleaks`
 
 ```bash
 make gate     # run it
 make sast     # semgrep static analysis using local .semgrep.yml (separate, slower)
 make verify-runtime HOST=hermes-vps  # live runtime invariants after deploy changes
+make autopilot HOST=hermes-vps       # local automated maintenance bundle
 ```
 
 `pre-commit` runs the same linters on staged files at commit time. CI (`.github/workflows/ci.yml`)
 runs `gate.sh` strict + semgrep on every push/PR.
+Dependabot (`.github/dependabot.yml`) opens weekly update PRs for GitHub Actions and Docker images.
 
 `make verify-runtime` is the live-system guard. Run it after any change that touches Hermes Agent
 provider/model, dashboard, Caddy, or gateway behavior. It fails on false-green states such as

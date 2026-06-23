@@ -8,13 +8,14 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 shell_files=(scripts/*.sh)
 
 if [ -n "${CI:-}" ]; then
-  echo "▶ 1/5 format (CI: check)" && shfmt -i 2 -ci -sr -d "${shell_files[@]}"
+  echo "▶ 1/6 format (CI: check)" && shfmt -i 2 -ci -sr -d "${shell_files[@]}"
 else
-  echo "▶ 1/5 format (local: auto-fix)" && shfmt -i 2 -ci -sr -w "${shell_files[@]}"
+  echo "▶ 1/6 format (local: auto-fix)" && shfmt -i 2 -ci -sr -w "${shell_files[@]}"
 fi
-echo "▶ 2/5 shellcheck" && shellcheck --severity=warning --external-sources "${shell_files[@]}"
-echo "▶ 3/5 yaml lint" && yamllint -c .yamllint.yaml .
-echo "▶ 4/5 validate infra" && ./scripts/validate-config.sh
-echo "▶ 5/5 secret scan" && gitleaks dir --no-banner --redact --config .gitleaks.toml .
+echo "▶ 2/6 shellcheck" && shellcheck --severity=warning --external-sources "${shell_files[@]}"
+echo "▶ 3/6 yaml lint" && yamllint -c .yamllint.yaml .
+echo "▶ 4/6 validate infra" && ./scripts/validate-config.sh
+echo "▶ 5/6 validate agent docs" && ./scripts/validate-agent-docs.sh
+echo "▶ 6/6 secret scan" && gitleaks dir --no-banner --redact --config .gitleaks.toml .
 
 echo "✅ GATE PASSED"
