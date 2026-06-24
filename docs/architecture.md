@@ -36,6 +36,23 @@ Web UI   ─┘                                                                 
 - Allow-lists (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`) restrict access — the agent has
   terminal/file tools, so this is a hard security requirement.
 
+### Magang document extension
+
+```
+Natural-language work update ─▶ Hermes ─▶ magang CLI ─▶ YAML log ─▶ official DOCX ─▶ PDF
+```
+
+- The separate `magang-tool` application is deployed to `~/magang`; its shim is
+  `~/.local/bin/magang`. Runtime `config.yaml`, daily logs, generated files, and official university
+  DOCX templates are deliberately excluded from this public infrastructure repository.
+- `scripts/configure-magang.sh` idempotently syncs application code while preserving
+  `config.yaml`, `data/`, and `out/`; installs the Python environment and headless LibreOffice; and
+  injects `infra/hermes-soul-magang.md` as a managed block in `~/.hermes/SOUL.md`.
+- Hermes interprets conversational dates, times, and tasks. The CLI owns deterministic date/week
+  storage, hour calculations, official template filling, and DOCX/PDF generation.
+- `scripts/verify-magang.sh` proves the CLI, both official templates, LibreOffice renderer, config
+  load, and persistent Hermes instruction block are present.
+
 ## Track B — Web dashboard (on the subscription)
 
 ```
@@ -73,4 +90,5 @@ Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0
 - **Current-design validation** — `scripts/validate-current-design.sh` fails the gate if docs and
   committed infra stop describing the deployed architecture (`openai-codex`, `openai/gpt-5.5`,
   auto-compression on, Codex auto-raise notice off, RTK terminal-output filtering, dashboard
-  loopback, Caddy host networking, edge auth, and Host/Origin rewrites).
+  loopback, Caddy host networking, edge auth, Host/Origin rewrites, and the managed magang
+  integration).

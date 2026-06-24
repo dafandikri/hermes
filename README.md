@@ -30,6 +30,7 @@ CLAUDE.md     Claude Code shim that points to AGENTS.md
 OPENCODE.md   opencode shim that points to AGENTS.md
 infra/        Config-as-code: docker-compose.yml, Caddyfile, systemd unit, .env.example
 scripts/      Idempotent ops scripts (deploy, configure, status, validate) + the gate
+infra/hermes-soul-magang.md  Managed Hermes instructions for the external magang tool
 docs/         Architecture, operations mistake log, and superpowers specs/plans
 .github/      CI (the gate, strict)
 Makefile      Developer entrypoint — run `make`
@@ -52,6 +53,7 @@ make validate-lessons  # enforce the mistake log
 make deploy-webapp HOST=hermes-vps   # refresh the Caddy + Open WebUI stack
 make status HOST=hermes-vps          # both tracks at a glance
 make verify-runtime HOST=hermes-vps  # fail-fast live guard: model/auth/services/web gate
+make verify-magang HOST=hermes-vps   # verify internship logging + DOCX/PDF generation
 make autopilot HOST=hermes-vps       # gate + SAST + model enforcement + runtime verify + status
 ```
 
@@ -74,6 +76,23 @@ export TELEGRAM_BOT_TOKEN=...  TELEGRAM_ALLOWED_USERS=<your-id>
 export DISCORD_BOT_TOKEN=...   DISCORD_ALLOWED_USERS=<your-id>   # optional
 scripts/configure-hermes.sh hermes-vps
 ```
+
+### Internship logging extension
+
+Hermes can turn natural-language daily work updates into 20-SKS internship logs and generate the
+official weekly Log Magang and Kerangka Acuan files as DOCX and PDF. The application, private
+configuration, logs, and university templates live in the separate local `magang-tool` project;
+this public repo owns its repeatable deployment and the managed instruction block injected into
+`~/.hermes/SOUL.md`.
+
+```bash
+MAGANG_SOURCE="$HOME/Documents/Internship/Semester 7/magang-tool" \
+  make configure-magang HOST=hermes-vps
+make verify-magang HOST=hermes-vps
+```
+
+Deployment preserves remote `config.yaml`, `data/`, and `out/`. The managed SOUL block is replaced
+idempotently without overwriting unrelated persona instructions.
 
 ## Quality gate
 

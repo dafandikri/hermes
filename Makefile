@@ -7,7 +7,7 @@ SHELL := bash
 # Allow `make deploy-webapp HOST=hermes-vps`
 HOST ?= hermes-vps
 
-.PHONY: help setup gate lint fmt validate validate-current-design validate-agent-docs validate-lessons secrets-scan sast deploy-webapp dashboard swap configure-model configure-rtk configure-bots verify-runtime status autopilot hooks ci
+.PHONY: help setup gate lint fmt validate validate-current-design validate-agent-docs validate-lessons secrets-scan sast deploy-webapp dashboard swap configure-model configure-rtk configure-magang configure-bots verify-magang verify-runtime status autopilot hooks ci
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -64,8 +64,14 @@ configure-model: ## Enforce Hermes provider/model on HOST
 configure-rtk: ## Install/enable RTK terminal-output filtering on HOST
 	./scripts/configure-rtk.sh "$(HOST)"
 
+configure-magang: ## Deploy the external magang tool and wire it into Hermes on HOST
+	./scripts/configure-magang.sh "$(HOST)"
+
 configure-bots: ## Wire Telegram/Discord secrets (from env) + start the gateway on HOST
 	./scripts/configure-hermes.sh "$(HOST)"
+
+verify-magang: ## Verify the live magang CLI, templates, renderer, and Hermes instructions
+	./scripts/verify-magang.sh "$(HOST)"
 
 verify-runtime: ## Verify live Hermes invariants on HOST (model/auth/services/web gate)
 	./scripts/verify-runtime.sh "$(HOST)"

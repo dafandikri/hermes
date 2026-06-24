@@ -30,6 +30,10 @@ require_text docs/architecture.md 'compression\.codex_gpt55_autoraise=false' \
   "architecture documents Codex auto-raise notice suppression"
 require_text docs/architecture.md 'rtk-rewrite' "architecture documents RTK plugin"
 require_text docs/architecture.md 'RTK_HERMES_MODE=rewrite' "architecture documents RTK rewrite mode"
+require_text docs/architecture.md 'scripts/configure-magang\.sh' \
+  "architecture documents idempotent magang deployment"
+require_text docs/architecture.md 'scripts/verify-magang\.sh' \
+  "architecture documents magang verification"
 require_text docs/architecture.md 'assistant\.dafandikri\.tech' "architecture documents public domain"
 require_text docs/architecture.md 'network_mode: host' "architecture documents Caddy host networking"
 require_text docs/architecture.md 'Host.*Origin|Origin.*Host' "architecture documents Host and Origin rewrites"
@@ -41,6 +45,8 @@ require_text README.md 'openai/gpt-5\.5' "README documents active model"
 require_text README.md 'rtk-rewrite' "README documents RTK plugin"
 require_text README.md 'docs/operations/mistakes\.md' "README links mistake log"
 require_text README.md 'make verify-runtime' "README documents runtime guard"
+require_text README.md 'make configure-magang' "README documents magang deployment"
+require_text README.md 'make verify-magang' "README documents magang verification"
 
 require_text AGENTS.md 'rtk-rewrite' "agent guide requires RTK filtering"
 require_text AGENTS.md 'docs/operations/mistakes\.md' "agent guide requires mistake logging"
@@ -75,6 +81,13 @@ require_text scripts/configure-model.sh 'HERMES_COMPRESSION_ENABLED.*true' \
   "model configuration enforces auto-compression"
 require_text scripts/configure-model.sh 'HERMES_CODEX_GPT55_AUTORAISE.*false' \
   "model configuration suppresses the auto-raise notice"
+require_text scripts/configure-magang.sh 'BEGIN HERMES MANAGED: MAGANG' \
+  "magang configuration uses a managed SOUL block"
+require_text scripts/configure-magang.sh "exclude 'config.yaml'" \
+  "magang deployment preserves private runtime config"
+require_text scripts/verify-magang.sh 'magang status' "magang guard checks the live CLI"
+require_text infra/hermes-soul-magang.md 'magang build-log' \
+  "managed Hermes instructions cover weekly document generation"
 require_text .github/workflows/ci.yml 'schedule:' "CI includes scheduled maintenance"
 require_text .github/dependabot.yml 'package-ecosystem: "github-actions"' \
   "Dependabot keeps GitHub Actions updated"
