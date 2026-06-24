@@ -60,7 +60,13 @@ upsert_env RTK_HERMES_PREVIEW_MARKER "__RTK_HERMES_PREVIEW_MARKER__"
 upsert_env RTK_HERMES_BACKENDS "__RTK_HERMES_BACKENDS__"
 
 if systemctl --user is-active --quiet hermes-gateway.service 2>/dev/null; then
-  systemctl --user restart hermes-gateway.service
+  # Detached + delayed restart so this never SIGKILLs the agent that may be running this very
+  # script from INSIDE the gateway (self-host). A direct restart here interrupts the agent
+  # mid-command; systemd then restarts it; the agent retries -> restart loop ("gateway shutting
+  # down"). systemd-run fires the restart ~8s later, after the current turn finishes.
+  systemd-run --user --on-active=8 --timer-property=AccuracySec=1s \
+    systemctl --user restart hermes-gateway.service > /dev/null 2>&1 \
+    || systemctl --user restart hermes-gateway.service
 fi
 if systemctl --user is-active --quiet hermes-dashboard.service 2>/dev/null; then
   systemctl --user restart hermes-dashboard.service
