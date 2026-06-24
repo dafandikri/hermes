@@ -29,6 +29,8 @@ Read [docs/architecture.md](docs/architecture.md) before changing behavior.
 - Keep Telegram/Discord allow-lists mandatory. The agent has terminal/file tools.
 - For public web exposure, keep Caddy basic-auth in front of the dashboard.
 - Keep the Hermes model invariant: provider `openai-codex`, model `openai/gpt-5.5`, auth logged in.
+- Keep RTK (`rtk-rewrite`) enabled for noisy local terminal commands, but bypass it for raw logs
+  whenever a failure needs full context.
 - Prefer idempotent scripts in `scripts/` over ad-hoc SSH.
 - Never rewrite git history, force-push, or change repo visibility without explicit user approval.
 
@@ -50,13 +52,14 @@ Run before/after bot or model changes:
 
 ```bash
 make configure-model HOST=hermes-vps
+make configure-rtk HOST=hermes-vps
 make status HOST=hermes-vps
 ```
 
 `make gate` covers formatting, shellcheck, YAML lint, infra validation, current-design validation,
 agent-doc validation, mistake-log validation, and secret scanning. `make verify-runtime` proves the
 live system is not a false green: model/provider, auto-compression on, Codex auto-raise notice off,
-Codex auth, dashboard service, gateway service, and web edge auth must all pass.
+RTK plugin/binary, Codex auth, dashboard service, gateway service, and web edge auth must all pass.
 
 ## Common Commands
 
@@ -68,6 +71,7 @@ make status HOST=hermes-vps
 make verify-runtime HOST=hermes-vps
 make dashboard HOST=hermes-vps
 make configure-model HOST=hermes-vps
+make configure-rtk HOST=hermes-vps
 make configure-bots HOST=hermes-vps
 ```
 
@@ -81,7 +85,8 @@ make configure-bots HOST=hermes-vps
   fix the droplet before finishing.
 - Keep committed infra consistent with docs. `scripts/validate-current-design.sh` is the guard for
   the current architecture: `openai-codex`, `openai/gpt-5.5`, auto-compression on, Codex auto-raise
-  notice off, dashboard loopback, Caddy host networking, edge basic-auth, and Host/Origin rewrites.
+  notice off, RTK terminal-output filtering, dashboard loopback, Caddy host networking, edge
+  basic-auth, and Host/Origin rewrites.
 - If a production mistake happens or repeats, update `docs/operations/mistakes.md` with impact,
   root cause, guardrail, and verification. Do not claim completion until the guardrail is automated
   or tied to a repo command.

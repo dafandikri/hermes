@@ -13,3 +13,8 @@ auxiliary:
   vision:
     provider: openrouter
     model: ~google/gemini-flash-latest
+
+# Token-saving terminal output filter for Hermes terminal-heavy workflows.
+plugins:
+  enabled:
+    - rtk-rewrite

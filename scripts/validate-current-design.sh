@@ -28,6 +28,8 @@ require_text docs/architecture.md 'openai/gpt-5\.5' "architecture documents acti
 require_text docs/architecture.md 'compression\.enabled=true' "architecture documents auto-compression enabled"
 require_text docs/architecture.md 'compression\.codex_gpt55_autoraise=false' \
   "architecture documents Codex auto-raise notice suppression"
+require_text docs/architecture.md 'rtk-rewrite' "architecture documents RTK plugin"
+require_text docs/architecture.md 'RTK_HERMES_MODE=rewrite' "architecture documents RTK rewrite mode"
 require_text docs/architecture.md 'assistant\.dafandikri\.tech' "architecture documents public domain"
 require_text docs/architecture.md 'network_mode: host' "architecture documents Caddy host networking"
 require_text docs/architecture.md 'Host.*Origin|Origin.*Host' "architecture documents Host and Origin rewrites"
@@ -36,9 +38,11 @@ require_text docs/architecture.md 'docs/operations/mistakes\.md' "architecture d
 
 require_text README.md 'openai-codex' "README documents subscription-backed provider"
 require_text README.md 'openai/gpt-5\.5' "README documents active model"
+require_text README.md 'rtk-rewrite' "README documents RTK plugin"
 require_text README.md 'docs/operations/mistakes\.md' "README links mistake log"
 require_text README.md 'make verify-runtime' "README documents runtime guard"
 
+require_text AGENTS.md 'rtk-rewrite' "agent guide requires RTK filtering"
 require_text AGENTS.md 'docs/operations/mistakes\.md' "agent guide requires mistake logging"
 require_text CONTRIBUTING.md 'validate mistake log' "contributing guide documents mistake-log gate"
 
@@ -60,6 +64,13 @@ require_text scripts/verify-runtime.sh '101 Switching Protocols| 101 ' \
   "runtime guard requires WebSocket 101"
 require_text scripts/verify-runtime.sh 'codex_gpt55_autoraise' \
   "runtime guard checks Codex auto-raise setting"
+require_text scripts/verify-runtime.sh 'rtk-rewrite' "runtime guard checks RTK plugin"
+require_text scripts/configure-rtk.sh 'seamusmore/rtk-rewrite' "RTK configuration installs plugin"
+require_text scripts/configure-rtk.sh 'RTK_HERMES_MODE.*rewrite' "RTK configuration defaults to rewrite mode"
+require_text scripts/configure-rtk.sh 'restart hermes-gateway.service' \
+  "RTK configuration restarts gateway after plugin changes"
+require_text infra/hermes-runtime.env.example 'RTK_HERMES_BACKENDS=local' \
+  "runtime env example pins RTK to local backend"
 require_text scripts/configure-model.sh 'HERMES_COMPRESSION_ENABLED.*true' \
   "model configuration enforces auto-compression"
 require_text scripts/configure-model.sh 'HERMES_CODEX_GPT55_AUTORAISE.*false' \

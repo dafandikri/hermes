@@ -15,7 +15,7 @@
 > HTTPS at `assistant.dafandikri.tech`. A **second track was added** — the official Hermes Agent
 > (Telegram/Discord/dashboard) on the `openai-codex` provider (ChatGPT subscription). The
 > ad-hoc SSH steps below are now superseded by idempotent scripts in `scripts/` (`deploy-webapp.sh`,
-> `configure-hermes.sh`, `status.sh`) gated by `make gate`. Remaining manual steps are owner-only:
+> `configure-hermes.sh`, `configure-rtk.sh`, `status.sh`) gated by `make gate`. Remaining manual steps are owner-only:
 > Codex OAuth login, creating the Telegram/Discord bots, and (Track B) the Open WebUI admin account
 > + API key. See [docs/architecture.md](../../architecture.md).
 

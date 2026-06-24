@@ -7,7 +7,7 @@ SHELL := bash
 # Allow `make deploy-webapp HOST=hermes-vps`
 HOST ?= hermes-vps
 
-.PHONY: help setup gate lint fmt validate validate-current-design validate-agent-docs validate-lessons secrets-scan sast deploy-webapp dashboard swap configure-model configure-bots verify-runtime status autopilot hooks ci
+.PHONY: help setup gate lint fmt validate validate-current-design validate-agent-docs validate-lessons secrets-scan sast deploy-webapp dashboard swap configure-model configure-rtk configure-bots verify-runtime status autopilot hooks ci
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -60,6 +60,9 @@ swap: ## Ensure a swapfile exists on HOST
 
 configure-model: ## Enforce Hermes provider/model on HOST
 	./scripts/configure-model.sh "$(HOST)"
+
+configure-rtk: ## Install/enable RTK terminal-output filtering on HOST
+	./scripts/configure-rtk.sh "$(HOST)"
 
 configure-bots: ## Wire Telegram/Discord secrets (from env) + start the gateway on HOST
 	./scripts/configure-hermes.sh "$(HOST)"

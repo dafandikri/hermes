@@ -43,8 +43,8 @@ runs `gate.sh` strict + semgrep on every push/PR and weekly on Monday morning As
 Dependabot (`.github/dependabot.yml`) opens weekly update PRs for GitHub Actions.
 
 `make verify-runtime` is the live-system guard. Run it after any change that touches Hermes Agent
-provider/model, dashboard, Caddy, or gateway behavior. It fails on false-green states such as
-`openai-codex` with a blank model.
+provider/model, RTK terminal filtering, dashboard, Caddy, or gateway behavior. It fails on
+false-green states such as `openai-codex` with a blank model or a missing `rtk-rewrite` plugin.
 
 When a mistake affects production or could repeat, add/update
 [`docs/operations/mistakes.md`](docs/operations/mistakes.md). The entry must include `Impact`,

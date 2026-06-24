@@ -11,7 +11,8 @@ evolved into **two tracks** as requirements grew (multi-channel + zero per-token
 
 - **Track A — official Hermes Agent** (Telegram + Discord + `hermes dashboard`), running on the
   owner's **ChatGPT subscription** via the `openai-codex` provider (no per-token API cost). This
-  is now the primary assistant.
+  is now the primary assistant. RTK (`rtk-rewrite`) is part of the as-built agent runtime so
+  terminal-heavy work defaults to compact command output with raw-log fallback for hard debugging.
 - **Track B — Open WebUI** (this spec's original design) remains deployed as an optional web app
   at `assistant.dafandikri.tech`; it needs a model API key (a subscription cannot drive it).
 

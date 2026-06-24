@@ -31,10 +31,15 @@ require_cmd() {
 }
 
 # ssh_host <host> <remote-command...> — run a command on the droplet over the SSH alias.
+# Use `self`/`local`/`localhost` when the caller is already running on the Hermes VPS.
 # PATH is exported so the user-installed `hermes` CLI is reachable.
 ssh_host() {
   local host="$1"
   shift
-  require_cmd ssh
-  ssh "$host" "export PATH=\$HOME/.local/bin:\$PATH; $*"
+  if [[ "$host" =~ ^(local|localhost|127\.0\.0\.1|self)$ ]]; then
+    PATH="$HOME/.local/bin:$PATH" bash -lc "$*"
+  else
+    require_cmd ssh
+    ssh "$host" "export PATH=\$HOME/.local/bin:\$PATH; $*"
+  fi
 }
