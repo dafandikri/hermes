@@ -118,3 +118,20 @@ Guardrail: `gitleaks` runs in `make gate`, pre-commit, pre-push, and CI. `AGENTS
 to keep secrets only on the droplet or provider dashboards.
 
 Verification: `make secrets-scan` and GitHub Actions `Quality gate`.
+
+## HERMES-010 Gateway Self-Restart Loop In configure-rtk.sh
+
+Impact: The Hermes gateway repeatedly shut down (16 restarts in one window, ~every 3m45s), dropping
+Telegram/Discord availability mid-task and interrupting long-running agent commands.
+
+Root Cause: `scripts/configure-rtk.sh` restarted the gateway with a direct
+`systemctl --user restart hermes-gateway`. When the agent runs that script from inside the gateway
+(self-host), the restart SIGTERMs the agent mid-command; systemd restarts it; the agent retries the
+script, producing a restart loop.
+
+Guardrail: The gateway restart in `scripts/configure-rtk.sh` is now detached and delayed via
+`systemd-run --user --on-active=8`, so it fires after the current turn finishes instead of killing
+the running agent. A direct restart remains only as a fallback when `systemd-run` is unavailable.
+
+Verification: `systemctl --user show hermes-gateway -p NRestarts` stays stable after
+`make configure-rtk HOST=hermes-vps`; `make gate`.
