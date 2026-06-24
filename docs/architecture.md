@@ -12,8 +12,8 @@ Source of truth for what is actually deployed. Keep this in sync with the drople
 
 ```
 Telegram ─┐
-Discord  ─┼─▶ hermes gateway (systemd) ─▶ provider: openai-codex ─▶ ChatGPT subscription (OAuth)
-Web UI   ─┘                                                          (no per-token API cost)
+Discord  ─┼─▶ hermes gateway (systemd) ─▶ RTK terminal filter ─▶ provider: openai-codex ─▶ ChatGPT subscription (OAuth)
+Web UI   ─┘                                                                                (no per-token API cost)
 ```
 
 - Official `hermes-agent` v0.17.0, installed as user `hermes` (`~/.local/bin/hermes`, config `~/.hermes/`).
@@ -25,6 +25,12 @@ Web UI   ─┘                                                          (no per
 - Runtime invariant: `compression.enabled=true` keeps auto-compaction active, while
   `compression.codex_gpt55_autoraise=false` suppresses the repeated Codex context-cap notice in
   Telegram/Discord. `scripts/verify-runtime.sh` fails if either setting drifts.
+- Runtime invariant: RTK (Rust Token Killer) is present and enabled through the `rtk-rewrite`
+  Hermes plugin. `RTK_HERMES_MODE=rewrite` and `RTK_HERMES_BACKENDS=local` keep local noisy
+  terminal commands compact by default; agents must bypass RTK and inspect raw logs when a
+  summarized command hides context needed for critical debugging. `scripts/configure-rtk.sh` installs
+  RTK, enables the plugin, writes non-secret RTK env defaults, and restarts Hermes services so the
+  plugin is loaded.
 - Messaging gateway runs Telegram + Discord concurrently; web UI via `hermes dashboard` (port 9119,
   password-protected on public bind).
 - Allow-lists (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`) restrict access — the agent has
@@ -66,5 +72,5 @@ Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0
   gate unless each lesson has impact, root cause, guardrail, and verification.
 - **Current-design validation** — `scripts/validate-current-design.sh` fails the gate if docs and
   committed infra stop describing the deployed architecture (`openai-codex`, `openai/gpt-5.5`,
-  auto-compression on, Codex auto-raise notice off, dashboard loopback, Caddy host networking, edge
-  auth, and Host/Origin rewrites).
+  auto-compression on, Codex auto-raise notice off, RTK terminal-output filtering, dashboard
+  loopback, Caddy host networking, edge auth, and Host/Origin rewrites).

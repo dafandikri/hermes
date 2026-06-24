@@ -23,6 +23,8 @@ ssh_host "$HOST" '
   echo "  model: $(grep -E "^  default:" ~/.hermes/config.yaml | tr -s " ")"
   echo "  provider: $(grep -E "^  provider:" ~/.hermes/config.yaml | tr -s " ")"
   echo "  auth(openai-codex): $(hermes auth status openai-codex 2>&1 | head -1)"
+  echo "  rtk: $(rtk --version 2>/dev/null || echo missing)"
+  echo "  rtk plugin: $(hermes plugins list --plain --no-bundled 2>/dev/null | grep -E "rtk-rewrite" | head -1 || echo missing)"
   echo "  gateway: $(hermes gateway status 2>&1 | head -1)"
 '
 

@@ -29,6 +29,8 @@ Read [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) fir
   `infra/.env.example` placeholders; `gitleaks` will block leaks.
 - **Secrets flow via environment/stdin, never argv** (avoids leaking into remote `ps`).
 - **Allow-lists are mandatory** for any messaging gateway — the agent has terminal/file tools.
+- **RTK stays enabled** (`rtk-rewrite`) for noisy local terminal output; bypass it for raw logs when
+  debugging needs full context.
 - **Cloudflare DNS stays grey-cloud (DNS only)** or Caddy's ACME HTTP-01 challenge breaks.
 - **Git:** never commit/push without explicit instruction.
 

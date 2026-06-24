@@ -18,6 +18,8 @@ EXPECTED_PROVIDER="${HERMES_PROVIDER:-openai-codex}"
 EXPECTED_MODEL="${HERMES_MODEL:-openai/gpt-5.5}"
 EXPECTED_COMPRESSION_ENABLED="${HERMES_COMPRESSION_ENABLED:-true}"
 EXPECTED_AUTORAISE="${HERMES_CODEX_GPT55_AUTORAISE:-false}"
+EXPECTED_RTK_MODE="${RTK_HERMES_MODE:-rewrite}"
+EXPECTED_RTK_BACKENDS="${RTK_HERMES_BACKENDS:-local}"
 
 info "Verifying Hermes runtime invariants on $HOST"
 
@@ -40,7 +42,7 @@ enabled = re.search(r"^  enabled:\s*(.*)$", body, re.MULTILINE)
 print((enabled.group(1).strip().strip("\"'"'"'") if enabled else ""))
 print((match.group(1).strip().strip("\"'"'"'") if match else ""))'
 remote_reader_b64="$(printf '%s' "$remote_reader" | base64 | tr -d '\n')"
-state_output="$(ssh "$HOST" "printf '%s' '$remote_reader_b64' | base64 --decode | python3")"
+state_output="$(ssh_host "$HOST" "printf '%s' '$remote_reader_b64' | base64 --decode | python3")"
 provider="$(printf '%s\n' "$state_output" | sed -n '1p')"
 model="$(printf '%s\n' "$state_output" | sed -n '2p')"
 compression_enabled="$(printf '%s\n' "$state_output" | sed -n '3p')"
@@ -54,6 +56,19 @@ ok "model/provider invariant holds (${provider} / ${model})"
 ok "auto-compression stays enabled (${compression_enabled})"
 [[ "$autoraise" == "$EXPECTED_AUTORAISE" ]] || die "compression.codex_gpt55_autoraise mismatch: got '$autoraise', want '$EXPECTED_AUTORAISE'"
 ok "Codex GPT-5.5 auto-raise notice stays suppressed (${autoraise})"
+
+rtk_state="$(ssh_host "$HOST" 'export PATH=$HOME/.local/bin:$PATH; rtk --version 2>/dev/null || true')"
+[[ "$rtk_state" == rtk\ * ]] || die "RTK binary is missing or not executable: ${rtk_state:-missing}"
+ok "RTK binary available (${rtk_state})"
+
+rtk_plugin="$(ssh_host "$HOST" 'hermes plugins list --plain --no-bundled 2>/dev/null | grep -E "rtk-rewrite" | head -1 || true')"
+[[ "$rtk_plugin" == enabled*rtk-rewrite* ]] || die "rtk-rewrite plugin is not enabled: ${rtk_plugin:-missing}"
+ok "RTK Hermes plugin enabled"
+
+rtk_env="$(ssh_host "$HOST" 'grep -E "^RTK_HERMES_(MODE|BACKENDS)=" ~/.hermes/.env 2>/dev/null || true')"
+[[ "$rtk_env" == *"RTK_HERMES_MODE=${EXPECTED_RTK_MODE}"* ]] || die "RTK_HERMES_MODE mismatch; want ${EXPECTED_RTK_MODE}"
+[[ "$rtk_env" == *"RTK_HERMES_BACKENDS=${EXPECTED_RTK_BACKENDS}"* ]] || die "RTK_HERMES_BACKENDS mismatch; want ${EXPECTED_RTK_BACKENDS}"
+ok "RTK env defaults hold (${EXPECTED_RTK_MODE} / ${EXPECTED_RTK_BACKENDS})"
 
 auth_status="$(ssh_host "$HOST" 'hermes auth status openai-codex 2>&1 | head -1')"
 [[ "$auth_status" == *"logged in"* ]] || die "openai-codex auth is not logged in: ${auth_status}"

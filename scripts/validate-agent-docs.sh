@@ -31,10 +31,10 @@ else
   rc=1
 fi
 
-if grep -q "make verify-runtime" AGENTS.md && grep -q "openai/gpt-5.5" AGENTS.md; then
+if grep -q "make verify-runtime" AGENTS.md && grep -q "openai/gpt-5.5" AGENTS.md && grep -q "rtk-rewrite" AGENTS.md; then
   ok "runtime invariant is documented for agents"
 else
-  warn "AGENTS.md must document runtime verification and the active model"
+  warn "AGENTS.md must document runtime verification, the active model, and RTK filtering"
   rc=1
 fi
 

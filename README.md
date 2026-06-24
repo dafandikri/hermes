@@ -13,7 +13,7 @@ Two independent tracks share one hardened droplet (`sgp1`, Ubuntu 24.04, 2 GB):
 
 | Track | You reach it via | Auth | Model billing |
 | --- | --- | --- | --- |
-| **Hermes Agent** | Telegram, Discord | Your messaging identity (allow-listed user IDs) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost) |
+| **Hermes Agent** | Telegram, Discord | Your messaging identity (allow-listed user IDs) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost); noisy terminal output goes through RTK |
 | **Web dashboard** | `https://assistant.dafandikri.tech` (`hermes dashboard` behind Caddy) | Caddy basic-auth at the edge | **Same ChatGPT subscription** — no API key |
 | Open WebUI *(stopped, revertable)* | — | — | would need a model API key; subscription can't drive it |
 
@@ -60,12 +60,16 @@ model is blank, auth is logged out, the dashboard/gateway is down, or web auth n
 longer blocks unauthenticated access, it fails instead of reporting a false green.
 The active model is `openai/gpt-5.5`. Auto-compaction stays enabled
 (`compression.enabled=true`), while the repeated Codex GPT-5.5 auto-raise notice stays suppressed
-(`compression.codex_gpt55_autoraise=false`).
+(`compression.codex_gpt55_autoraise=false`). RTK (Rust Token Killer) is installed and enabled via the
+`rtk-rewrite` Hermes plugin so noisy terminal commands are summarized before they reach the
+agent context; raw output remains the fallback for critical troubleshooting. `make configure-rtk`
+installs/enables the plugin and restarts Hermes services so the hook is loaded.
 
 Configuring the Hermes Agent bots (secrets read from your environment, never argv):
 
 ```bash
 make configure-model HOST=hermes-vps
+make configure-rtk HOST=hermes-vps
 export TELEGRAM_BOT_TOKEN=...  TELEGRAM_ALLOWED_USERS=<your-id>
 export DISCORD_BOT_TOKEN=...   DISCORD_ALLOWED_USERS=<your-id>   # optional
 scripts/configure-hermes.sh hermes-vps

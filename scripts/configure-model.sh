@@ -52,5 +52,6 @@ PY
 ssh_host "$HOST" "hermes config set compression.codex_gpt55_autoraise ${HERMES_CODEX_GPT55_AUTORAISE} >/dev/null"
 ssh_host "$HOST" "hermes config set compression.enabled ${HERMES_COMPRESSION_ENABLED} >/dev/null"
 
+./scripts/configure-rtk.sh "$HOST" --skip-verify
 ./scripts/verify-runtime.sh "$HOST" --skip-web
 ok "Hermes provider/model configured"
