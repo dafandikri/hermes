@@ -27,7 +27,6 @@ ssh_host "$HOST" '
   echo "  rtk plugin: $(hermes plugins list --plain --no-bundled 2>/dev/null | grep -E "rtk-rewrite" | head -1 || echo missing)"
   echo "  gateway: $(hermes gateway status 2>&1 | head -1)"
   echo "  LINE: $(grep -q "^LINE_CHANNEL_ACCESS_TOKEN=." ~/.hermes/.env 2>/dev/null && echo configured || echo not-configured)"
-  echo "  WhatsApp: $([ -d ~/.hermes/whatsapp/session ] && echo paired || echo not-paired)"
 '
 
 ./scripts/verify-runtime.sh "$HOST" --skip-web

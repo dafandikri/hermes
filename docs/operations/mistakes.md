@@ -168,3 +168,19 @@ verification retries the adapter health endpoint while startup converges.
 
 Verification: `make configure-line HOST=hermes-vps`, then
 `make verify-channels HOST=hermes-vps`.
+
+## HERMES-013 Process Cleanup Pattern Killed Its Own Remote Shell
+
+Impact: A channel-removal SSH command disconnected before deleting the stopped session and
+dependency directories. The channel environment was already disabled and the gateway remained
+healthy, but cleanup required a second audited command.
+
+Root Cause: `pkill -f` matched the process pattern embedded in the remote shell's own command line,
+so it terminated the shell orchestrating cleanup as well as the intended child process.
+
+Guardrail: Runtime cleanup must stop or restart the owning systemd service first, verify the child
+process is absent with a self-excluding pattern such as `[w]ord`, and only then remove state. Do not
+use broad `pkill -f` inside an SSH command whose argv contains the same literal pattern.
+
+Verification: `make verify-runtime HOST=hermes-vps`; confirm the retired channel process and state
+paths are absent with a read-only runtime inventory.

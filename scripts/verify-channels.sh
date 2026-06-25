@@ -70,19 +70,6 @@ if line_enabled:
     if not re.search(r'(?ms)^gateway:.*?^  platforms:.*?^    line:.*?^      enabled:\\s*true\\s*$', config):
         errors.append('LINE: gateway.platforms.line.enabled is not true')
 
-whatsapp_enabled = values.get('WHATSAPP_ENABLED', '').lower() == 'true'
-require_keys(
-    'WhatsApp',
-    whatsapp_enabled,
-    ['WHATSAPP_ENABLED', 'WHATSAPP_MODE', 'WHATSAPP_ALLOWED_USERS'],
-)
-if whatsapp_enabled:
-    session = Path.home() / '.hermes' / 'whatsapp' / 'session'
-    if not session.is_dir() or not any(session.iterdir()):
-        errors.append('WhatsApp: pairing session is missing; run make pair-whatsapp')
-    else:
-        print('  WhatsApp: pairing session present')
-
 if errors:
     for error in errors:
         print(f'ERROR: {error}', file=sys.stderr)
@@ -104,13 +91,6 @@ if [[ "$line_configured" == "yes" ]]; then
   [[ "$line_health" == "200" ]] ||
     die "LINE adapter health returned ${line_health:-no response}, want 200; inspect ~/.hermes/logs/gateway.log"
   ok "LINE adapter health passes"
-fi
-
-whatsapp_configured="$(ssh_host "$HOST" 'grep -q "^WHATSAPP_ENABLED=true" ~/.hermes/.env 2>/dev/null && echo yes || true')"
-if [[ "$whatsapp_configured" == "yes" ]]; then
-  whatsapp_bridge="$(ssh_host "$HOST" 'pgrep -f "scripts/whatsapp-bridge/bridge.js" >/dev/null && echo active || true')"
-  [[ "$whatsapp_bridge" == "active" ]] || die "WhatsApp bridge process is not active"
-  ok "WhatsApp bridge process active"
 fi
 
 ok "messaging channel verification passed"

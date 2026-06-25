@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Configure the Hermes Agent messaging gateway (Telegram, Discord, LINE, and/or WhatsApp)
+# Configure the Hermes Agent messaging gateway (Telegram, Discord, and/or LINE)
 # idempotently,
 # then install + start it as a service. Secrets are read from the ENVIRONMENT and piped
 # over stdin (never passed as argv, so they don't leak into the remote process list).
@@ -9,7 +9,6 @@
 #   export DISCORD_BOT_TOKEN=...  DISCORD_ALLOWED_USERS=456   # optional
 #   export LINE_CHANNEL_ACCESS_TOKEN=... LINE_CHANNEL_SECRET=...
 #   export LINE_ALLOWED_USERS=U... LINE_PUBLIC_URL=https://assistant.example.com
-#   export WHATSAPP_ENABLED=true WHATSAPP_MODE=bot WHATSAPP_ALLOWED_USERS=628...
 #   scripts/configure-hermes.sh [ssh-host]                    # default: hermes-vps
 set -euo pipefail
 
@@ -34,12 +33,9 @@ declare -a pairs=()
 [[ -n "${LINE_ALLOWED_ROOMS:-}" ]] && pairs+=("LINE_ALLOWED_ROOMS=${LINE_ALLOWED_ROOMS}")
 [[ -n "${LINE_PUBLIC_URL:-}" ]] && pairs+=("LINE_PUBLIC_URL=${LINE_PUBLIC_URL}")
 [[ -n "${LINE_HOME_CHANNEL:-}" ]] && pairs+=("LINE_HOME_CHANNEL=${LINE_HOME_CHANNEL}")
-[[ -n "${WHATSAPP_ENABLED:-}" ]] && pairs+=("WHATSAPP_ENABLED=${WHATSAPP_ENABLED}")
-[[ -n "${WHATSAPP_MODE:-}" ]] && pairs+=("WHATSAPP_MODE=${WHATSAPP_MODE}")
-[[ -n "${WHATSAPP_ALLOWED_USERS:-}" ]] && pairs+=("WHATSAPP_ALLOWED_USERS=${WHATSAPP_ALLOWED_USERS}")
 
 [[ ${#pairs[@]} -gt 0 ]] ||
-  die "no platform settings in environment (set Telegram, Discord, LINE, and/or WhatsApp variables)"
+  die "no platform settings in environment (set Telegram, Discord, and/or LINE variables)"
 
 if [[ -n "${TELEGRAM_BOT_TOKEN:-}" && -z "${TELEGRAM_ALLOWED_USERS:-}" ]]; then
   die "TELEGRAM_BOT_TOKEN requires TELEGRAM_ALLOWED_USERS"
@@ -54,11 +50,6 @@ if [[ -n "${LINE_CHANNEL_ACCESS_TOKEN:-}" || -n "${LINE_CHANNEL_SECRET:-}" ]]; t
     die "LINE requires at least one LINE_ALLOWED_USERS/GROUPS/ROOMS allowlist"
   [[ -n "${LINE_PUBLIC_URL:-}" ]] || die "LINE requires LINE_PUBLIC_URL for the public webhook/media base URL"
 fi
-if [[ "${WHATSAPP_ENABLED:-false}" == "true" ]]; then
-  [[ "${WHATSAPP_MODE:-}" =~ ^(bot|self-chat)$ ]] || die "WHATSAPP_MODE must be bot or self-chat"
-  [[ -n "${WHATSAPP_ALLOWED_USERS:-}" ]] || die "WHATSAPP_ENABLED=true requires WHATSAPP_ALLOWED_USERS"
-fi
-
 info "Writing ${#pairs[@]} key(s) to ~/.hermes/.env on $HOST (secrets via stdin, not argv)"
 # Remote upsert script: reads KEY=VALUE lines on stdin and merges them into ~/.hermes/.env.
 # Python avoids treating token characters as sed replacement syntax. The script is shipped as

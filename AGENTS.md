@@ -13,7 +13,7 @@ DigitalOcean droplet.
 - Public web: `https://assistant.dafandikri.tech`.
 - Primary runtime: official Hermes Agent on `openai-codex`, using the owner's ChatGPT/Codex
   subscription through OAuth.
-- Channels: Telegram, Discord, LINE, WhatsApp, and the Hermes dashboard behind Caddy basic-auth.
+- Channels: Telegram, Discord, LINE, and the Hermes dashboard behind Caddy basic-auth.
 - Optional old track: Open WebUI remains defined but stopped; it requires a model API key and is
   not the preferred subscription-powered path.
 
@@ -26,7 +26,7 @@ Read [docs/architecture.md](docs/architecture.md) before changing behavior.
 - Do not print tokens, bot credentials, dashboard passwords, OAuth files, or private keys.
 - Keep Cloudflare for `assistant.dafandikri.tech` as **DNS only / grey-cloud** unless you also
   implement DNS-01 ACME with a Cloudflare API token.
-- Keep per-platform allow-lists mandatory for Telegram, Discord, LINE, and WhatsApp. The agent has
+- Keep per-platform allow-lists mandatory for Telegram, Discord, and LINE. The agent has
   terminal/file tools.
 - For public web exposure, keep Caddy basic-auth in front of the dashboard.
 - Keep the Hermes model invariant: provider `openai-codex`, model `openai/gpt-5.5`, auth logged in.
@@ -75,7 +75,6 @@ make configure-model HOST=hermes-vps
 make configure-rtk HOST=hermes-vps
 make configure-bots HOST=hermes-vps
 make configure-line-edge HOST=hermes-vps
-make pair-whatsapp HOST=hermes-vps
 make verify-channels HOST=hermes-vps
 ```
 

@@ -23,6 +23,19 @@ require_text() {
   fi
 }
 
+forbid_text() {
+  local file="$1"
+  local pattern="$2"
+  local label="$3"
+
+  if grep -qiE -- "$pattern" "$file"; then
+    warn "retired integration found in $file: $label"
+    rc=1
+  else
+    ok "$label"
+  fi
+}
+
 require_text docs/architecture.md 'provider: "openai-codex"' "architecture documents Codex provider"
 require_text docs/architecture.md 'openai/gpt-5\.5' "architecture documents active model"
 require_text docs/architecture.md 'compression\.enabled=true' "architecture documents auto-compression enabled"
@@ -35,7 +48,6 @@ require_text docs/architecture.md 'scripts/configure-magang\.sh' \
 require_text docs/architecture.md 'scripts/verify-magang\.sh' \
   "architecture documents magang verification"
 require_text docs/architecture.md 'LINE Messaging API' "architecture documents official LINE adapter"
-require_text docs/architecture.md 'WhatsApp/Baileys' "architecture documents WhatsApp bridge and risk"
 require_text docs/architecture.md 'scripts/verify-channels\.sh' \
   "architecture documents messaging channel verification"
 require_text docs/architecture.md 'assistant\.dafandikri\.tech' "architecture documents public domain"
@@ -53,7 +65,6 @@ require_text README.md 'make configure-magang' "README documents magang deployme
 require_text README.md 'make verify-magang' "README documents magang verification"
 require_text README.md 'make configure-line-edge' "README documents LINE edge deployment"
 require_text README.md 'make configure-line' "README documents hidden-input LINE activation"
-require_text README.md 'make pair-whatsapp' "README documents WhatsApp pairing"
 require_text README.md 'make verify-channels' "README documents channel verification"
 
 require_text AGENTS.md 'rtk-rewrite' "agent guide requires RTK filtering"
@@ -89,8 +100,6 @@ require_text scripts/configure-hermes.sh 'LINE_CHANNEL_ACCESS_TOKEN' \
   "gateway configuration supports LINE"
 require_text scripts/configure-line-interactive.sh 'read -r -s' \
   "LINE activation reads credentials with terminal echo disabled"
-require_text scripts/configure-hermes.sh 'WHATSAPP_ALLOWED_USERS' \
-  "gateway configuration supports WhatsApp"
 require_text scripts/configure-rtk.sh 'seamusmore/rtk-rewrite' "RTK configuration installs plugin"
 require_text scripts/configure-rtk.sh 'RTK_HERMES_MODE.*rewrite' "RTK configuration defaults to rewrite mode"
 require_text scripts/configure-rtk.sh 'restart hermes-gateway.service' \
@@ -108,6 +117,28 @@ require_text scripts/configure-magang.sh "exclude 'config.yaml'" \
 require_text scripts/verify-magang.sh 'magang status' "magang guard checks the live CLI"
 require_text infra/hermes-soul-magang.md 'magang build-log' \
   "managed Hermes instructions cover weekly document generation"
+forbid_text AGENTS.md 'whatsapp|baileys|pair-whatsapp' \
+  "agent guide keeps retired WhatsApp integration removed"
+forbid_text README.md 'whatsapp|baileys|pair-whatsapp' \
+  "README keeps retired WhatsApp integration removed"
+forbid_text docs/architecture.md 'whatsapp|baileys|pair-whatsapp' \
+  "architecture keeps retired WhatsApp integration removed"
+forbid_text Makefile 'whatsapp|pair-whatsapp' \
+  "Makefile keeps retired WhatsApp targets removed"
+forbid_text infra/hermes-config.example.yaml 'whatsapp' \
+  "Hermes config example keeps WhatsApp removed"
+forbid_text infra/hermes-runtime.env.example 'whatsapp' \
+  "runtime env example keeps WhatsApp removed"
+forbid_text scripts/configure-hermes.sh 'whatsapp' \
+  "gateway configuration keeps WhatsApp removed"
+forbid_text scripts/status.sh 'whatsapp' \
+  "status output keeps WhatsApp removed"
+forbid_text scripts/verify-channels.sh 'whatsapp' \
+  "channel verification keeps WhatsApp removed"
+[[ ! -e scripts/pair-whatsapp.sh ]] || {
+  warn "retired WhatsApp pairing script still exists"
+  rc=1
+}
 require_text .github/workflows/ci.yml 'schedule:' "CI includes scheduled maintenance"
 require_text .github/dependabot.yml 'package-ecosystem: "github-actions"' \
   "Dependabot keeps GitHub Actions updated"

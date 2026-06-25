@@ -14,8 +14,7 @@ Source of truth for what is actually deployed. Keep this in sync with the drople
 Telegram ─┐
 Discord  ─┤
 LINE     ─┼─▶ hermes gateway (systemd) ─▶ RTK terminal filter ─▶ provider: openai-codex ─▶ ChatGPT subscription (OAuth)
-WhatsApp─┤                                                                                (no per-token API cost)
-Web UI   ─┘
+Web UI   ─┘                                                                                (no per-token API cost)
 ```
 
 - Official `hermes-agent` v0.17.0, installed as user `hermes` (`~/.local/bin/hermes`, config `~/.hermes/`).
@@ -33,24 +32,19 @@ Web UI   ─┘
   summarized command hides context needed for critical debugging. `scripts/configure-rtk.sh` installs
   RTK, enables the plugin, writes non-secret RTK env defaults, and restarts Hermes services so the
   plugin is loaded.
-- Messaging gateway runs Telegram, Discord, LINE, and WhatsApp concurrently. The web UI runs via
+- Messaging gateway runs Telegram, Discord, and LINE concurrently. The web UI runs via
   `hermes dashboard` (port 9119, password-protected on public bind).
 - Per-platform allowlists restrict access (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`,
-  LINE user/group/room allowlists, and `WHATSAPP_ALLOWED_USERS`). The agent has terminal/file tools,
-  so an enabled platform without an allowlist is a hard failure in `scripts/verify-channels.sh`.
+  and LINE user/group/room allowlists). The agent has terminal/file tools, so an enabled platform
+  without an allowlist is a hard failure in `scripts/verify-channels.sh`.
 - LINE uses the official LINE Messaging API bundled plugin. Caddy exposes only `/line/*` to the
   adapter on loopback port 8646; the channel secret verifies webhook signatures, while every
   non-LINE path remains behind dashboard basic-auth.
-- Personal WhatsApp uses Hermes's built-in WhatsApp/Baileys bridge. The encrypted linked-device
-  session remains only under `~/.hermes/whatsapp/session` with mode 0700. Baileys is
-  unofficial, so use a dedicated number and avoid unsolicited or bulk messaging. The official
-  WhatsApp Business Cloud API remains the production alternative.
 - `scripts/configure-hermes.sh` writes supplied channel settings through stdin, enables LINE when
   configured, and restarts the gateway. `scripts/configure-line-edge.sh` installs the public LINE
   route idempotently; `scripts/configure-line-interactive.sh` collects rotated LINE credentials
-  with terminal echo disabled; `scripts/pair-whatsapp.sh` owns the required QR pairing; and
-  `scripts/verify-channels.sh` checks credentials by presence only, mandatory allowlists, LINE
-  health, and WhatsApp session persistence without printing secrets.
+  with terminal echo disabled; and `scripts/verify-channels.sh` checks credentials by presence
+  only, mandatory allowlists, and LINE health without printing secrets.
 
 ### Magang document extension
 

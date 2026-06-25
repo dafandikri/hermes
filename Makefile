@@ -7,7 +7,7 @@ SHELL := bash
 # Allow `make deploy-webapp HOST=hermes-vps`
 HOST ?= hermes-vps
 
-.PHONY: help setup gate lint fmt validate validate-current-design validate-agent-docs validate-lessons secrets-scan sast deploy-webapp dashboard swap update-hermes configure-model configure-rtk configure-magang configure-bots configure-line configure-line-edge pair-whatsapp verify-magang verify-channels verify-runtime status autopilot hooks ci
+.PHONY: help setup gate lint fmt validate validate-current-design validate-agent-docs validate-lessons secrets-scan sast deploy-webapp dashboard swap update-hermes configure-model configure-rtk configure-magang configure-bots configure-line configure-line-edge verify-magang verify-channels verify-runtime status autopilot hooks ci
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -70,7 +70,7 @@ configure-rtk: ## Install/enable RTK terminal-output filtering on HOST
 configure-magang: ## Deploy the external magang tool and wire it into Hermes on HOST
 	./scripts/configure-magang.sh "$(HOST)"
 
-configure-bots: ## Wire Telegram/Discord/LINE/WhatsApp settings (from env) + start gateway
+configure-bots: ## Wire Telegram/Discord/LINE settings (from env) + start gateway
 	./scripts/configure-hermes.sh "$(HOST)"
 
 configure-line: ## Securely prompt for LINE credentials and activate the adapter
@@ -78,9 +78,6 @@ configure-line: ## Securely prompt for LINE credentials and activate the adapter
 
 configure-line-edge: ## Expose the signed LINE webhook route through Caddy
 	./scripts/configure-line-edge.sh "$(HOST)"
-
-pair-whatsapp: ## Interactively pair the built-in WhatsApp bridge by QR code
-	./scripts/pair-whatsapp.sh "$(HOST)"
 
 verify-magang: ## Verify the live magang CLI, templates, renderer, and Hermes instructions
 	./scripts/verify-magang.sh "$(HOST)"

@@ -13,7 +13,7 @@ Two independent tracks share one hardened droplet (`sgp1`, Ubuntu 24.04, 2 GB):
 
 | Track | You reach it via | Auth | Model billing |
 | --- | --- | --- | --- |
-| **Hermes Agent** | Telegram, Discord, LINE, WhatsApp | Your messaging identity (per-platform allowlists) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost); noisy terminal output goes through RTK |
+| **Hermes Agent** | Telegram, Discord, LINE | Your messaging identity (per-platform allowlists) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost); noisy terminal output goes through RTK |
 | **Web dashboard** | `https://assistant.dafandikri.tech` (`hermes dashboard` behind Caddy) | Caddy basic-auth at the edge | **Same ChatGPT subscription** — no API key |
 | Open WebUI *(stopped, revertable)* | — | — | would need a model API key; subscription can't drive it |
 
@@ -101,25 +101,6 @@ LINE Developers webhook setting.
 Set the LINE webhook URL to
 `https://assistant.dafandikri.tech/line/webhook`, enable **Use webhook**, and disable LINE's
 automatic greeting/reply messages.
-
-### WhatsApp
-
-Hermes's personal WhatsApp adapter uses the built-in Baileys bridge, which emulates WhatsApp Web.
-It needs no Meta developer account, but it is unofficial and carries account-restriction risk.
-Use a dedicated bot number, avoid unsolicited/bulk messages, and never commit
-`~/.hermes/whatsapp/session`.
-
-```bash
-make pair-whatsapp HOST=hermes-vps  # interactive QR scan
-export WHATSAPP_ENABLED=true
-export WHATSAPP_MODE=bot
-export WHATSAPP_ALLOWED_USERS=628... # country code, no leading +
-make configure-bots HOST=hermes-vps
-make verify-channels HOST=hermes-vps
-```
-
-For a production business number, use Hermes's official WhatsApp Business Cloud API adapter
-instead; it requires Meta Business credentials and a separate public webhook route.
 
 ### Internship logging extension
 

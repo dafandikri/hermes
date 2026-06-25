@@ -13,10 +13,6 @@ gateway:
     line:
       enabled: true
 
-whatsapp:
-  # Private bot numbers should silently ignore unknown senders.
-  unauthorized_dm_behavior: ignore
-
 # Token-saving terminal output filter for Hermes terminal-heavy workflows.
 plugins:
   enabled:

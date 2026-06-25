@@ -25,6 +25,7 @@ required_ids=(
   HERMES-010
   HERMES-011
   HERMES-012
+  HERMES-013
 )
 
 rc=0
