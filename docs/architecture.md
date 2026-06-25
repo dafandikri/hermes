@@ -13,12 +13,10 @@ Source of truth for what is actually deployed. Keep this in sync with the drople
 ```
 Telegram ─┐
 Discord  ─┤
-LINE*    ─┼─▶ hermes gateway (systemd) ─▶ RTK terminal filter ─▶ provider: openai-codex ─▶ ChatGPT subscription (OAuth)
+LINE     ─┼─▶ hermes gateway (systemd) ─▶ RTK terminal filter ─▶ provider: openai-codex ─▶ ChatGPT subscription (OAuth)
 WhatsApp─┤                                                                                (no per-token API cost)
 Web UI   ─┘
 ```
-
-`LINE*` is repo- and edge-ready but remains disabled until rotated LINE credentials are installed.
 
 - Official `hermes-agent` v0.17.0, installed as user `hermes` (`~/.local/bin/hermes`, config `~/.hermes/`).
 - `provider: "openai-codex"` in `~/.hermes/config.yaml`; authenticated via
@@ -35,9 +33,8 @@ Web UI   ─┘
   summarized command hides context needed for critical debugging. `scripts/configure-rtk.sh` installs
   RTK, enables the plugin, writes non-secret RTK env defaults, and restarts Hermes services so the
   plugin is loaded.
-- Messaging gateway currently runs Telegram, Discord, and WhatsApp concurrently. LINE is staged
-  and joins the same gateway after credential activation. The web UI runs via `hermes dashboard`
-  (port 9119, password-protected on public bind).
+- Messaging gateway runs Telegram, Discord, LINE, and WhatsApp concurrently. The web UI runs via
+  `hermes dashboard` (port 9119, password-protected on public bind).
 - Per-platform allowlists restrict access (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`,
   LINE user/group/room allowlists, and `WHATSAPP_ALLOWED_USERS`). The agent has terminal/file tools,
   so an enabled platform without an allowlist is a hard failure in `scripts/verify-channels.sh`.

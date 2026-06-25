@@ -33,6 +33,9 @@ printf 'Public URL [%s]: ' "$DEFAULT_PUBLIC_URL"
 IFS= read -r line_public_url
 line_public_url="${line_public_url:-$DEFAULT_PUBLIC_URL}"
 [[ "$line_public_url" =~ ^https:// ]] || die "LINE public URL must use HTTPS"
+[[ "$line_public_url" =~ ^https://[^/]+/?$ ]] ||
+  die "LINE public URL must be the base origin only (example: ${DEFAULT_PUBLIC_URL}), without /line/webhook"
+line_public_url="${line_public_url%/}"
 
 ./scripts/configure-line-edge.sh "$HOST"
 
@@ -46,5 +49,5 @@ LINE_CHANNEL_ACCESS_TOKEN="$line_token" \
 unset line_token line_secret
 
 printf '\nSet this URL in LINE Developers and enable Use webhook:\n'
-printf '  %s/line/webhook\n' "${line_public_url%/}"
+printf '  %s/line/webhook\n' "$line_public_url"
 ok "LINE configured; send the official account a test message"

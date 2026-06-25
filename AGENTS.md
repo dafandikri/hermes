@@ -13,9 +13,7 @@ DigitalOcean droplet.
 - Public web: `https://assistant.dafandikri.tech`.
 - Primary runtime: official Hermes Agent on `openai-codex`, using the owner's ChatGPT/Codex
   subscription through OAuth.
-- Channels: Telegram, Discord, WhatsApp, and the Hermes dashboard behind Caddy basic-auth. LINE
-  integration and its public signed-webhook route are staged; activation requires rotated provider
-  credentials.
+- Channels: Telegram, Discord, LINE, WhatsApp, and the Hermes dashboard behind Caddy basic-auth.
 - Optional old track: Open WebUI remains defined but stopped; it requires a model API key and is
   not the preferred subscription-powered path.
 

@@ -95,8 +95,14 @@ gateway_state="$(ssh_host "$HOST" 'systemctl --user is-active hermes-gateway.ser
 
 line_configured="$(ssh_host "$HOST" 'grep -q "^LINE_CHANNEL_ACCESS_TOKEN=." ~/.hermes/.env 2>/dev/null && echo yes || true')"
 if [[ "$line_configured" == "yes" ]]; then
-  line_health="$(ssh_host "$HOST" 'curl -sS -o /dev/null -w "%{http_code}" http://127.0.0.1:8646/line/webhook/health || true')"
-  [[ "$line_health" == "200" ]] || die "LINE adapter health returned ${line_health:-no response}, want 200"
+  line_health=""
+  for _ in $(seq 1 30); do
+    line_health="$(ssh_host "$HOST" 'curl -sS -o /dev/null -w "%{http_code}" http://127.0.0.1:8646/line/webhook/health 2>/dev/null || true')"
+    [[ "$line_health" == "200" ]] && break
+    sleep 2
+  done
+  [[ "$line_health" == "200" ]] ||
+    die "LINE adapter health returned ${line_health:-no response}, want 200; inspect ~/.hermes/logs/gateway.log"
   ok "LINE adapter health passes"
 fi
 

@@ -152,3 +152,19 @@ either service does not converge.
 
 Verification: `make update-hermes HOST=hermes-vps`, followed by
 `make verify-runtime HOST=hermes-vps`.
+
+## HERMES-012 LINE Activation Did Not Reload The Gateway
+
+Impact: LINE credentials and plugin configuration were written successfully, but the adapter did
+not open port 8646, so activation ended with a failed health check.
+
+Root Cause: `hermes gateway start` is a no-op when the systemd service is already active. The
+running process therefore retained its pre-LINE environment and plugin set. The interactive setup
+also accepted a full webhook path where `LINE_PUBLIC_URL` requires only the HTTPS base origin.
+
+Guardrail: `scripts/configure-hermes.sh` now restarts the gateway after channel configuration and
+waits for stable active state. The LINE setup rejects public URLs containing a path, and channel
+verification retries the adapter health endpoint while startup converges.
+
+Verification: `make configure-line HOST=hermes-vps`, then
+`make verify-channels HOST=hermes-vps`.

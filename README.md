@@ -13,7 +13,7 @@ Two independent tracks share one hardened droplet (`sgp1`, Ubuntu 24.04, 2 GB):
 
 | Track | You reach it via | Auth | Model billing |
 | --- | --- | --- | --- |
-| **Hermes Agent** | Telegram, Discord, WhatsApp; LINE integration ready | Your messaging identity (per-platform allowlists) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost); noisy terminal output goes through RTK |
+| **Hermes Agent** | Telegram, Discord, LINE, WhatsApp | Your messaging identity (per-platform allowlists) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost); noisy terminal output goes through RTK |
 | **Web dashboard** | `https://assistant.dafandikri.tech` (`hermes dashboard` behind Caddy) | Caddy basic-auth at the edge | **Same ChatGPT subscription** — no API key |
 | Open WebUI *(stopped, revertable)* | — | — | would need a model API key; subscription can't drive it |
 
@@ -93,6 +93,10 @@ The command prompts for the token and secret with terminal echo disabled, so nei
 shell history. It also performs the equivalent of `make configure-line-edge`, installing the
 signed webhook route before activating the adapter. If a credential is pasted into chat, an issue
 tracker, or another log, revoke and regenerate it before running the command.
+
+When prompted for the public URL, accept the default base origin
+`https://assistant.dafandikri.tech`. Do not append `/line/webhook`; that suffix belongs only in the
+LINE Developers webhook setting.
 
 Set the LINE webhook URL to
 `https://assistant.dafandikri.tech/line/webhook`, enable **Use webhook**, and disable LINE's

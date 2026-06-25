@@ -103,8 +103,21 @@ if [[ -n "${LINE_CHANNEL_ACCESS_TOKEN:-}" ]]; then
   ssh_host "$HOST" 'hermes config set gateway.platforms.line.enabled true >/dev/null'
 fi
 
-info "Installing + starting the gateway service"
-ssh_host "$HOST" 'yes | hermes gateway install >/dev/null 2>&1 || true; hermes gateway start >/dev/null 2>&1 || true; hermes gateway status 2>&1 | head -5'
+info "Installing + reloading the gateway service"
+ssh_host "$HOST" '
+  yes | hermes gateway install >/dev/null 2>&1 || true
+  systemctl --user restart hermes-gateway.service
+  for _ in $(seq 1 45); do
+    state="$(systemctl --user is-active hermes-gateway.service 2>/dev/null || true)"
+    if [ "$state" = active ]; then
+      sleep 3
+      [ "$(systemctl --user is-active hermes-gateway.service 2>/dev/null || true)" = active ] && break
+    fi
+    sleep 2
+  done
+  [ "$(systemctl --user is-active hermes-gateway.service 2>/dev/null || true)" = active ]
+  hermes gateway status 2>&1 | head -5
+'
 
 ./scripts/verify-runtime.sh "$HOST" --skip-web
 
