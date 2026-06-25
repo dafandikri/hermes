@@ -34,6 +34,10 @@ require_text docs/architecture.md 'scripts/configure-magang\.sh' \
   "architecture documents idempotent magang deployment"
 require_text docs/architecture.md 'scripts/verify-magang\.sh' \
   "architecture documents magang verification"
+require_text docs/architecture.md 'LINE Messaging API' "architecture documents official LINE adapter"
+require_text docs/architecture.md 'WhatsApp/Baileys' "architecture documents WhatsApp bridge and risk"
+require_text docs/architecture.md 'scripts/verify-channels\.sh' \
+  "architecture documents messaging channel verification"
 require_text docs/architecture.md 'assistant\.dafandikri\.tech' "architecture documents public domain"
 require_text docs/architecture.md 'network_mode: host' "architecture documents Caddy host networking"
 require_text docs/architecture.md 'Host.*Origin|Origin.*Host' "architecture documents Host and Origin rewrites"
@@ -47,6 +51,10 @@ require_text README.md 'docs/operations/mistakes\.md' "README links mistake log"
 require_text README.md 'make verify-runtime' "README documents runtime guard"
 require_text README.md 'make configure-magang' "README documents magang deployment"
 require_text README.md 'make verify-magang' "README documents magang verification"
+require_text README.md 'make configure-line-edge' "README documents LINE edge deployment"
+require_text README.md 'make configure-line' "README documents hidden-input LINE activation"
+require_text README.md 'make pair-whatsapp' "README documents WhatsApp pairing"
+require_text README.md 'make verify-channels' "README documents channel verification"
 
 require_text AGENTS.md 'rtk-rewrite' "agent guide requires RTK filtering"
 require_text AGENTS.md 'docs/operations/mistakes\.md' "agent guide requires mistake logging"
@@ -54,6 +62,10 @@ require_text CONTRIBUTING.md 'validate mistake log' "contributing guide document
 
 require_text infra/docker-compose.yml 'network_mode: host' "compose keeps Caddy on host network"
 require_text infra/Caddyfile.dashboard 'basic_auth' "dashboard Caddyfile keeps edge auth"
+require_text infra/Caddyfile.dashboard 'reverse_proxy /line/\* 127\.0\.0\.1:8646' \
+  "dashboard Caddyfile exposes only the LINE adapter path"
+require_text infra/Caddyfile.dashboard '@dashboard not path /line/\*' \
+  "dashboard auth excludes only the signed LINE route"
 require_text infra/Caddyfile.dashboard 'reverse_proxy 127\.0\.0\.1:9119' \
   "dashboard Caddyfile proxies loopback dashboard"
 require_text infra/Caddyfile.dashboard 'header_up Host 127\.0\.0\.1:9119' \
@@ -71,6 +83,14 @@ require_text scripts/verify-runtime.sh '101 Switching Protocols| 101 ' \
 require_text scripts/verify-runtime.sh 'codex_gpt55_autoraise' \
   "runtime guard checks Codex auto-raise setting"
 require_text scripts/verify-runtime.sh 'rtk-rewrite' "runtime guard checks RTK plugin"
+require_text scripts/verify-runtime.sh 'verify-channels\.sh' \
+  "runtime guard checks messaging allowlists and sessions"
+require_text scripts/configure-hermes.sh 'LINE_CHANNEL_ACCESS_TOKEN' \
+  "gateway configuration supports LINE"
+require_text scripts/configure-line-interactive.sh 'read -r -s' \
+  "LINE activation reads credentials with terminal echo disabled"
+require_text scripts/configure-hermes.sh 'WHATSAPP_ALLOWED_USERS' \
+  "gateway configuration supports WhatsApp"
 require_text scripts/configure-rtk.sh 'seamusmore/rtk-rewrite' "RTK configuration installs plugin"
 require_text scripts/configure-rtk.sh 'RTK_HERMES_MODE.*rewrite' "RTK configuration defaults to rewrite mode"
 require_text scripts/configure-rtk.sh 'restart hermes-gateway.service' \

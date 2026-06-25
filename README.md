@@ -13,7 +13,7 @@ Two independent tracks share one hardened droplet (`sgp1`, Ubuntu 24.04, 2 GB):
 
 | Track | You reach it via | Auth | Model billing |
 | --- | --- | --- | --- |
-| **Hermes Agent** | Telegram, Discord | Your messaging identity (allow-listed user IDs) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost); noisy terminal output goes through RTK |
+| **Hermes Agent** | Telegram, Discord, WhatsApp; LINE integration ready | Your messaging identity (per-platform allowlists) | **Your ChatGPT subscription** (`openai-codex` provider, OAuth — no per-token cost); noisy terminal output goes through RTK |
 | **Web dashboard** | `https://assistant.dafandikri.tech` (`hermes dashboard` behind Caddy) | Caddy basic-auth at the edge | **Same ChatGPT subscription** — no API key |
 | Open WebUI *(stopped, revertable)* | — | — | would need a model API key; subscription can't drive it |
 
@@ -53,6 +53,7 @@ make validate-lessons  # enforce the mistake log
 make deploy-webapp HOST=hermes-vps   # refresh the Caddy + Open WebUI stack
 make status HOST=hermes-vps          # both tracks at a glance
 make verify-runtime HOST=hermes-vps  # fail-fast live guard: model/auth/services/web gate
+make verify-channels HOST=hermes-vps # messaging credentials, allowlists, sessions, health
 make verify-magang HOST=hermes-vps   # verify internship logging + DOCX/PDF generation
 make autopilot HOST=hermes-vps       # gate + SAST + model enforcement + runtime verify + status
 ```
@@ -67,7 +68,7 @@ The active model is `openai/gpt-5.5`. Auto-compaction stays enabled
 agent context; raw output remains the fallback for critical troubleshooting. `make configure-rtk`
 installs/enables the plugin and restarts Hermes services so the hook is loaded.
 
-Configuring the Hermes Agent bots (secrets read from your environment, never argv):
+Configuring Hermes messaging (secrets read from your environment, never argv):
 
 ```bash
 make configure-model HOST=hermes-vps
@@ -76,6 +77,45 @@ export TELEGRAM_BOT_TOKEN=...  TELEGRAM_ALLOWED_USERS=<your-id>
 export DISCORD_BOT_TOKEN=...   DISCORD_ALLOWED_USERS=<your-id>   # optional
 scripts/configure-hermes.sh hermes-vps
 ```
+
+### LINE
+
+LINE uses its official Messaging API. Create a Provider and Messaging API channel in the LINE
+Developers Console, issue a long-lived access token, and obtain your `U...` user ID. The webhook
+route is the only unauthenticated route on the public domain; LINE validates every event with the
+channel-secret signature. The dashboard remains behind Caddy basic-auth.
+
+```bash
+make configure-line HOST=hermes-vps
+```
+
+The command prompts for the token and secret with terminal echo disabled, so neither value enters
+shell history. It also performs the equivalent of `make configure-line-edge`, installing the
+signed webhook route before activating the adapter. If a credential is pasted into chat, an issue
+tracker, or another log, revoke and regenerate it before running the command.
+
+Set the LINE webhook URL to
+`https://assistant.dafandikri.tech/line/webhook`, enable **Use webhook**, and disable LINE's
+automatic greeting/reply messages.
+
+### WhatsApp
+
+Hermes's personal WhatsApp adapter uses the built-in Baileys bridge, which emulates WhatsApp Web.
+It needs no Meta developer account, but it is unofficial and carries account-restriction risk.
+Use a dedicated bot number, avoid unsolicited/bulk messages, and never commit
+`~/.hermes/whatsapp/session`.
+
+```bash
+make pair-whatsapp HOST=hermes-vps  # interactive QR scan
+export WHATSAPP_ENABLED=true
+export WHATSAPP_MODE=bot
+export WHATSAPP_ALLOWED_USERS=628... # country code, no leading +
+make configure-bots HOST=hermes-vps
+make verify-channels HOST=hermes-vps
+```
+
+For a production business number, use Hermes's official WhatsApp Business Cloud API adapter
+instead; it requires Meta Business credentials and a separate public webhook route.
 
 ### Internship logging extension
 

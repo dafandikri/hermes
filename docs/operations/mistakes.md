@@ -135,3 +135,20 @@ the running agent. A direct restart remains only as a fallback when `systemd-run
 
 Verification: `systemctl --user show hermes-gateway -p NRestarts` stays stable after
 `make configure-rtk HOST=hermes-vps`; `make gate`.
+
+## HERMES-011 Verification Raced A Gateway Drain
+
+Impact: A successful Hermes update was reported as failed because runtime verification observed
+`hermes-gateway.service` in its expected transient `deactivating` state during the updater's drain
+and delayed RTK restart.
+
+Root Cause: `scripts/verify-runtime.sh` sampled systemd service state once. Update and plugin
+workflows legitimately restart the gateway asynchronously, so a strict single sample could produce
+a false negative while the service was converging.
+
+Guardrail: Runtime verification now waits up to 90 seconds for the dashboard and gateway to become
+active, then confirms each remains active after a two-second stability interval. It still fails if
+either service does not converge.
+
+Verification: `make update-hermes HOST=hermes-vps`, followed by
+`make verify-runtime HOST=hermes-vps`.

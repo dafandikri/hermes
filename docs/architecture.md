@@ -12,9 +12,13 @@ Source of truth for what is actually deployed. Keep this in sync with the drople
 
 ```
 Telegram ─┐
-Discord  ─┼─▶ hermes gateway (systemd) ─▶ RTK terminal filter ─▶ provider: openai-codex ─▶ ChatGPT subscription (OAuth)
-Web UI   ─┘                                                                                (no per-token API cost)
+Discord  ─┤
+LINE*    ─┼─▶ hermes gateway (systemd) ─▶ RTK terminal filter ─▶ provider: openai-codex ─▶ ChatGPT subscription (OAuth)
+WhatsApp─┤                                                                                (no per-token API cost)
+Web UI   ─┘
 ```
+
+`LINE*` is repo- and edge-ready but remains disabled until rotated LINE credentials are installed.
 
 - Official `hermes-agent` v0.17.0, installed as user `hermes` (`~/.local/bin/hermes`, config `~/.hermes/`).
 - `provider: "openai-codex"` in `~/.hermes/config.yaml`; authenticated via
@@ -31,10 +35,25 @@ Web UI   ─┘                                                                 
   summarized command hides context needed for critical debugging. `scripts/configure-rtk.sh` installs
   RTK, enables the plugin, writes non-secret RTK env defaults, and restarts Hermes services so the
   plugin is loaded.
-- Messaging gateway runs Telegram + Discord concurrently; web UI via `hermes dashboard` (port 9119,
-  password-protected on public bind).
-- Allow-lists (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`) restrict access — the agent has
-  terminal/file tools, so this is a hard security requirement.
+- Messaging gateway currently runs Telegram, Discord, and WhatsApp concurrently. LINE is staged
+  and joins the same gateway after credential activation. The web UI runs via `hermes dashboard`
+  (port 9119, password-protected on public bind).
+- Per-platform allowlists restrict access (`TELEGRAM_ALLOWED_USERS`, `DISCORD_ALLOWED_USERS`,
+  LINE user/group/room allowlists, and `WHATSAPP_ALLOWED_USERS`). The agent has terminal/file tools,
+  so an enabled platform without an allowlist is a hard failure in `scripts/verify-channels.sh`.
+- LINE uses the official LINE Messaging API bundled plugin. Caddy exposes only `/line/*` to the
+  adapter on loopback port 8646; the channel secret verifies webhook signatures, while every
+  non-LINE path remains behind dashboard basic-auth.
+- Personal WhatsApp uses Hermes's built-in WhatsApp/Baileys bridge. The encrypted linked-device
+  session remains only under `~/.hermes/whatsapp/session` with mode 0700. Baileys is
+  unofficial, so use a dedicated number and avoid unsolicited or bulk messaging. The official
+  WhatsApp Business Cloud API remains the production alternative.
+- `scripts/configure-hermes.sh` writes supplied channel settings through stdin, enables LINE when
+  configured, and restarts the gateway. `scripts/configure-line-edge.sh` installs the public LINE
+  route idempotently; `scripts/configure-line-interactive.sh` collects rotated LINE credentials
+  with terminal echo disabled; `scripts/pair-whatsapp.sh` owns the required QR pairing; and
+  `scripts/verify-channels.sh` checks credentials by presence only, mandatory allowlists, LINE
+  health, and WhatsApp session persistence without printing secrets.
 
 ### Magang document extension
 
@@ -57,10 +76,13 @@ Natural-language work update ─▶ Hermes ─▶ magang CLI ─▶ YAML log ─
 
 ```
 Browser ─▶ Caddy (host net, TLS, basic-auth) ─▶ hermes dashboard 127.0.0.1:9119 ─▶ ChatGPT subscription
+LINE    ─▶ Caddy `/line/*` (TLS, signature-authenticated) ─▶ LINE adapter 127.0.0.1:8646
 ```
 
 - Public HTTPS at `assistant.dafandikri.tech` (DNS at Cloudflare, **DNS-only / grey-cloud** so
   Caddy's HTTP-01 challenge works; orange-cloud proxy would break it).
+- `/line/*` is intentionally excluded from Caddy basic-auth so LINE can deliver signed webhooks.
+  All other paths retain the dashboard auth gate.
 - The web face is the **Hermes dashboard** (`hermes-dashboard.service`, systemd user unit), which
   runs on the same Codex subscription as the bots — **no API key, no separate admin account**.
 - The dashboard binds loopback (its own DNS-rebinding guard rejects other Host headers), so:

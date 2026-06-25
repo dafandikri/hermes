@@ -74,13 +74,37 @@ auth_status="$(ssh_host "$HOST" 'hermes auth status openai-codex 2>&1 | head -1'
 [[ "$auth_status" == *"logged in"* ]] || die "openai-codex auth is not logged in: ${auth_status}"
 ok "openai-codex auth is logged in"
 
-dashboard_state="$(ssh_host "$HOST" 'systemctl --user is-active hermes-dashboard.service 2>/dev/null || true')"
+dashboard_state="$(ssh_host "$HOST" '
+  for _ in $(seq 1 45); do
+    state="$(systemctl --user is-active hermes-dashboard.service 2>/dev/null || true)"
+    if [ "$state" = active ]; then
+      sleep 2
+      systemctl --user is-active hermes-dashboard.service 2>/dev/null || true
+      exit 0
+    fi
+    sleep 2
+  done
+  systemctl --user is-active hermes-dashboard.service 2>/dev/null || true
+')"
 [[ "$dashboard_state" == "active" ]] || die "hermes-dashboard.service is not active (${dashboard_state:-missing})"
 ok "dashboard service active"
 
-gateway_state="$(ssh_host "$HOST" 'systemctl --user is-active hermes-gateway.service 2>/dev/null || true')"
+gateway_state="$(ssh_host "$HOST" '
+  for _ in $(seq 1 45); do
+    state="$(systemctl --user is-active hermes-gateway.service 2>/dev/null || true)"
+    if [ "$state" = active ]; then
+      sleep 2
+      systemctl --user is-active hermes-gateway.service 2>/dev/null || true
+      exit 0
+    fi
+    sleep 2
+  done
+  systemctl --user is-active hermes-gateway.service 2>/dev/null || true
+')"
 [[ "$gateway_state" == "active" ]] || die "hermes-gateway.service is not active (${gateway_state:-missing})"
 ok "gateway service active"
+
+./scripts/verify-channels.sh "$HOST"
 
 if [[ "$SKIP_WEB" != "--skip-web" ]]; then
   domain="$(ssh_host "$HOST" 'grep ^DOMAIN /opt/hermes/.env 2>/dev/null | cut -d= -f2')"

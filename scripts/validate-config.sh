@@ -43,6 +43,33 @@ else
   warn "skipping Caddyfile validation locally (install caddy or start Docker Desktop); CI still enforces it"
 fi
 
+info "Validating infra/Caddyfile.dashboard"
+dashboard_caddyfile="$(mktemp)"
+sed -e 's/__DASH_USER__/admin/' -e 's|__DASH_HASH__|\$2a\$14\$examplehashfortemplatevalidationonly000000000000000000000|' \
+  infra/Caddyfile.dashboard > "$dashboard_caddyfile"
+if command -v caddy > /dev/null 2>&1; then
+  if caddy validate --config "$dashboard_caddyfile" --adapter caddyfile > /dev/null 2>&1; then
+    ok "dashboard Caddyfile is valid"
+  else
+    warn "dashboard Caddyfile validation failed"
+    rc=1
+  fi
+elif command -v docker > /dev/null 2>&1 && docker info > /dev/null 2>&1; then
+  if docker run --rm -v "$dashboard_caddyfile:/etc/caddy/Caddyfile:ro" \
+    caddy:2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile > /dev/null 2>&1; then
+    ok "dashboard Caddyfile is valid"
+  else
+    warn "dashboard Caddyfile validation failed"
+    rc=1
+  fi
+elif [[ -n "${CI:-}" ]]; then
+  warn "neither local caddy nor a usable Docker daemon is available for dashboard Caddyfile validation"
+  rc=1
+else
+  warn "skipping dashboard Caddyfile validation locally; CI still enforces it"
+fi
+rm -f "$dashboard_caddyfile"
+
 info "Checking required infra files exist"
 for f in infra/docker-compose.yml infra/Caddyfile infra/.env.example infra/hermes-agent.service; do
   [[ -f "$f" ]] && ok "$f" || {

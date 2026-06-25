@@ -1,18 +1,21 @@
 # Example ~/.hermes/config.yaml for the Hermes Agent (non-secret settings).
-# Secrets (OPENROUTER_API_KEY / OPENAI_API_KEY / TELEGRAM_BOT_TOKEN) go in ~/.hermes/.env, not here.
+# OAuth and messaging credentials go in ~/.hermes/.env or provider dashboards, never here.
 model:
-  provider: openrouter
-  # One OpenRouter key reaches BOTH Hermes and OpenAI GPT-5.x. Pick a model id:
-  #   nousresearch/hermes-4-70b   (on-theme, cheap)
-  #   openai/gpt-5                (OpenAI's flagship via OpenRouter, needs no separate OpenAI acct)
-  #   openrouter/auto             (let OpenRouter choose)
-  default: nousresearch/hermes-4-70b
+  provider: openai-codex
+  default: openai/gpt-5.5
 
-# Optional: cheaper model for side tasks
-auxiliary:
-  vision:
-    provider: openrouter
-    model: ~google/gemini-flash-latest
+compression:
+  enabled: true
+  codex_gpt55_autoraise: false
+
+gateway:
+  platforms:
+    line:
+      enabled: true
+
+whatsapp:
+  # Private bot numbers should silently ignore unknown senders.
+  unauthorized_dm_behavior: ignore
 
 # Token-saving terminal output filter for Hermes terminal-heavy workflows.
 plugins:

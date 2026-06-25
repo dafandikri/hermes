@@ -11,15 +11,22 @@
 
 {$DOMAIN:localhost} {
 	encode gzip
-	basic_auth {
+
+	# LINE signs webhook requests with the channel secret. Keep only the LINE adapter
+	# path outside dashboard basic-auth so LINE's servers can deliver events.
+	@dashboard not path /line/*
+	basic_auth @dashboard {
 		__DASH_USER__ __DASH_HASH__
 	}
-  # The dashboard rejects any Host header other than the one it bound to (DNS-rebinding
-  # guard). Its WebSocket/chat stream also checks Origin. Rewrite both only on the
-  # private upstream hop; the browser still uses the public origin and Caddy basic-auth
-  # remains the internet-facing security boundary.
-  reverse_proxy 127.0.0.1:9119 {
-    header_up Host 127.0.0.1:9119
-    header_up Origin http://127.0.0.1:9119
-  }
+
+	reverse_proxy /line/* 127.0.0.1:8646
+
+	# The dashboard rejects any Host header other than the one it bound to (DNS-rebinding
+	# guard). Its WebSocket/chat stream also checks Origin. Rewrite both only on the
+	# private upstream hop; the browser still uses the public origin and Caddy basic-auth
+	# remains the internet-facing security boundary.
+	reverse_proxy 127.0.0.1:9119 {
+		header_up Host 127.0.0.1:9119
+		header_up Origin http://127.0.0.1:9119
+	}
 }
