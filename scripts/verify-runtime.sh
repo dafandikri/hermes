@@ -115,7 +115,30 @@ if [[ "$SKIP_WEB" != "--skip-web" ]]; then
   ok "web edge blocks unauthenticated access"
 
   if [[ -n "${DASH_USER:-}" && -n "${DASH_PASS:-}" ]]; then
-    with_auth="$(curl -sS -u "${DASH_USER}:${DASH_PASS}" -o /dev/null -w '%{http_code}' "https://${domain}/" || true)"
+    with_auth="$(
+      DASH_DOMAIN="$domain" DASH_USER="$DASH_USER" DASH_PASS="$DASH_PASS" python3 - << 'PY'
+import base64
+import os
+import urllib.error
+import urllib.request
+
+domain = os.environ["DASH_DOMAIN"]
+user = os.environ["DASH_USER"]
+password = os.environ["DASH_PASS"]
+creds = base64.b64encode(f"{user}:{password}".encode()).decode()
+req = urllib.request.Request(
+    f"https://{domain}/",
+    headers={"Authorization": f"Basic {creds}"},
+)
+try:
+    with urllib.request.urlopen(req, timeout=15) as response:
+        print(response.status)
+except urllib.error.HTTPError as exc:
+    print(exc.code)
+except Exception:
+    print("000")
+PY
+    )"
     [[ "$with_auth" == "200" ]] || die "web dashboard auth check failed: got ${with_auth}, want 200"
     ok "web dashboard opens with supplied credentials"
 

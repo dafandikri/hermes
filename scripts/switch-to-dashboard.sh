@@ -8,7 +8,7 @@
 #
 # Usage: scripts/switch-to-dashboard.sh [ssh-host]    (default: hermes-vps)
 #   DASH_USER  web username (default: admin)
-#   DASH_PASS  web password (default: generated and printed once)
+#   DASH_PASS  web password (default: generated and copied to clipboard on macOS)
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -20,13 +20,17 @@ REMOTE_DIR="/opt/hermes"
 DASH_USER="${DASH_USER:-admin}"
 require_cmd ssh
 require_cmd scp
+require_cmd htpasswd
+require_cmd python3
 
 if [ -n "${DASH_PASS:-}" ]; then
   dash_pass="$DASH_PASS"
   generated=0
 else
+  require_cmd pbcopy
   # openssl avoids the `tr | head` SIGPIPE-under-pipefail trap (no pipe at all).
   dash_pass="$(openssl rand -hex 16)"
+  printf '%s' "$dash_pass" | pbcopy
   generated=1
 fi
 
@@ -69,9 +73,9 @@ ssh_host "$HOST" '
   systemctl --user is-active hermes-dashboard.service
 ' || die "dashboard service failed to start"
 
-# 5. hash the password (bcrypt via caddy), render the Caddyfile, install it on the droplet
+# 5. hash the password (bcrypt via htpasswd stdin), render the Caddyfile, install it on the droplet
 info "Hashing the web password (bcrypt)"
-dash_hash="$(ssh "$HOST" "sudo docker run --rm caddy:2 caddy hash-password --plaintext $(printf '%q' "$dash_pass")" 2> /dev/null | tr -d '\r\n')"
+dash_hash="$(printf '%s\n' "$dash_pass" | htpasswd -B -C "${DASH_BCRYPT_COST:-14}" -n -i "" | sed 's/^://' | tr -d '\r\n')"
 [ -n "$dash_hash" ] || die "failed to hash password"
 
 info "Rendering and installing the dashboard Caddyfile (secrets stay on the droplet)"
@@ -92,7 +96,30 @@ ssh "$HOST" "cd ${REMOTE_DIR} && sudo docker compose up -d --force-recreate cadd
 domain="$(ssh "$HOST" "grep ^DOMAIN ${REMOTE_DIR}/.env | cut -d= -f2")"
 sleep 6
 no_auth="$(curl -s -o /dev/null -w '%{http_code}' "https://${domain}/" || true)"
-with_auth="$(curl -s -u "${DASH_USER}:${dash_pass}" -o /dev/null -w '%{http_code}' "https://${domain}/" || true)"
+with_auth="$(
+  DASH_DOMAIN="$domain" DASH_USER="$DASH_USER" DASH_PASS="$dash_pass" python3 - << 'PY'
+import base64
+import os
+import urllib.error
+import urllib.request
+
+domain = os.environ["DASH_DOMAIN"]
+user = os.environ["DASH_USER"]
+password = os.environ["DASH_PASS"]
+creds = base64.b64encode(f"{user}:{password}".encode()).decode()
+req = urllib.request.Request(
+    f"https://{domain}/",
+    headers={"Authorization": f"Basic {creds}"},
+)
+try:
+    with urllib.request.urlopen(req, timeout=15) as response:
+        print(response.status)
+except urllib.error.HTTPError as exc:
+    print(exc.code)
+except Exception:
+    print("000")
+PY
+)"
 info "Gate check — no-auth=${no_auth} (want 401), with-auth=${with_auth} (want not 401)"
 [ "$no_auth" = 401 ] && ok "edge gate blocks unauthenticated access" || warn "expected 401 without creds, got ${no_auth}"
 [ "$with_auth" != 401 ] && ok "edge gate opens with credentials (status ${with_auth})" || warn "auth rejected valid credentials"
@@ -105,9 +132,7 @@ fi
 
 ok "dashboard is now the web app at https://${domain}"
 if [ "$generated" = 1 ]; then
-  printf '\n  +-- WEB LOGIN (save now — shown once) -----------------\n'
-  printf '  |  URL:      https://%s\n' "$domain"
-  printf '  |  Username: %s\n' "$DASH_USER"
-  printf '  |  Password: %s\n' "$dash_pass"
-  printf '  +-----------------------------------------------------\n'
+  printf '\nGenerated dashboard password copied to the local clipboard.\n'
+  printf 'URL: https://%s\n' "$domain"
+  printf 'Username: %s\n' "$DASH_USER"
 fi
