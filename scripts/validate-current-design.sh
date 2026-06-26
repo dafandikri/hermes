@@ -47,6 +47,10 @@ require_text docs/architecture.md 'scripts/configure-magang\.sh' \
   "architecture documents idempotent magang deployment"
 require_text docs/architecture.md 'scripts/verify-magang\.sh' \
   "architecture documents magang verification"
+require_text docs/architecture.md 'magang/data/pekan-NN\.yaml' \
+  "architecture documents stable magang log path"
+require_text docs/architecture.md 'rsync --update' \
+  "architecture documents magang sync conflict policy"
 require_text docs/architecture.md 'LINE Messaging API' "architecture documents official LINE adapter"
 require_text docs/architecture.md 'scripts/verify-channels\.sh' \
   "architecture documents messaging channel verification"
@@ -68,6 +72,8 @@ require_text README.md 'make configure-line' "README documents hidden-input LINE
 require_text README.md 'make verify-channels' "README documents channel verification"
 
 require_text AGENTS.md 'rtk-rewrite' "agent guide requires RTK filtering"
+require_text AGENTS.md 'magang/data/pekan-NN\.yaml' \
+  "agent guide preserves the magang sync interface"
 require_text AGENTS.md 'docs/operations/mistakes\.md' "agent guide requires mistake logging"
 require_text CONTRIBUTING.md 'validate mistake log' "contributing guide documents mistake-log gate"
 
@@ -114,7 +120,15 @@ require_text scripts/configure-magang.sh 'BEGIN HERMES MANAGED: MAGANG' \
   "magang configuration uses a managed SOUL block"
 require_text scripts/configure-magang.sh "exclude 'config.yaml'" \
   "magang deployment preserves private runtime config"
+require_text scripts/configure-magang.sh "exclude 'data/'" \
+  "magang deployment preserves synced runtime logs"
+require_text scripts/configure-magang.sh '^chmod 600 config\.yaml$' \
+  "magang configuration repairs private config permissions"
 require_text scripts/verify-magang.sh 'magang status' "magang guard checks the live CLI"
+require_text scripts/verify-magang.sh 'pekan-\*\.yaml' \
+  "magang guard checks for readable weekly logs"
+require_text scripts/verify-magang.sh 'stat -c %a ~/magang/config\.yaml' \
+  "magang guard checks config permissions"
 require_text infra/hermes-soul-magang.md 'magang build-log' \
   "managed Hermes instructions cover weekly document generation"
 forbid_text AGENTS.md 'whatsapp|baileys|pair-whatsapp' \

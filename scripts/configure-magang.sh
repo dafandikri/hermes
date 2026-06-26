@@ -25,6 +25,8 @@ require_cmd rsync
 [[ -f "$MAGANG_SOURCE/templates/kerangka-acuan.docx" ]] || die "missing Kerangka Acuan template"
 
 info "Syncing magang application to $HOST:~/$REMOTE_HOME"
+# Preserve the stable sync interface consumed by the external internship workspace.
+# Deploys must never clobber the VPS-owned logs or fixed configuration.
 rsync -az --delete \
   --exclude '.venv/' \
   --exclude 'out/' \
@@ -60,8 +62,8 @@ fi
 mkdir -p data out "$HOME/.local/bin"
 if [ ! -f config.yaml ]; then
   cp config.example.yaml config.yaml
-  chmod 600 config.yaml
 fi
+chmod 600 config.yaml
 
 cat > "$HOME/.local/bin/magang" <<'"'"'SHIM'"'"'
 #!/usr/bin/env bash

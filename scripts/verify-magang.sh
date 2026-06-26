@@ -23,6 +23,18 @@ ssh_host "$HOST" 'test -f ~/magang/templates/log-magang.docx'
 ssh_host "$HOST" 'test -f ~/magang/templates/kerangka-acuan.docx'
 ok "official document templates available"
 
+if ! ssh_host "$HOST" \
+  'test -d ~/magang/data && find ~/magang/data -maxdepth 1 -type f -name "pekan-*.yaml" -readable -print -quit | grep -q .'; then
+  die "magang sync interface has no readable weekly log"
+fi
+if ! ssh_host "$HOST" 'test -f ~/magang/config.yaml'; then
+  die "magang sync interface config is missing"
+fi
+if ! ssh_host "$HOST" 'test "$(stat -c %a ~/magang/config.yaml)" = 600'; then
+  die "magang config must have mode 600"
+fi
+ok "magang sync interface available"
+
 status_output="$(ssh_host "$HOST" 'magang status')"
 [[ -n "$status_output" ]] || die "magang status returned no output"
 ok "magang data/config load successfully"

@@ -55,13 +55,19 @@ Natural-language work update ─▶ Hermes ─▶ magang CLI ─▶ YAML log ─
 - The separate `magang-tool` application is deployed to `~/magang`; its shim is
   `~/.local/bin/magang`. Runtime `config.yaml`, daily logs, generated files, and official university
   DOCX templates are deliberately excluded from this public infrastructure repository.
+- The VPS is the source of truth for internship records. An external laptop workspace synchronizes
+  `~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` over the `hermes-vps` SSH alias with
+  `rsync --update` and no `--delete`; it may read and write log files, but only pulls
+  `config.yaml`. These paths are a stable interface and must not be relocated or renamed without
+  updating that consumer.
 - `scripts/configure-magang.sh` idempotently syncs application code while preserving
   `config.yaml`, `data/`, and `out/`; installs the Python environment and headless LibreOffice; and
   injects `infra/hermes-soul-magang.md` as a managed block in `~/.hermes/SOUL.md`.
 - Hermes interprets conversational dates, times, and tasks. The CLI owns deterministic date/week
   storage, hour calculations, official template filling, and DOCX/PDF generation.
-- `scripts/verify-magang.sh` proves the CLI, both official templates, LibreOffice renderer, config
-  load, and persistent Hermes instruction block are present.
+- `scripts/verify-magang.sh` proves the CLI, both official templates, LibreOffice renderer,
+  sync-interface paths and permissions, config load, and persistent Hermes instruction block are
+  present.
 
 ## Track B — Web dashboard (on the subscription)
 

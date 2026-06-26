@@ -32,6 +32,8 @@ Read [docs/architecture.md](docs/architecture.md) before changing behavior.
 - Keep the Hermes model invariant: provider `openai-codex`, model `openai/gpt-5.5`, auth logged in.
 - Keep RTK (`rtk-rewrite`) enabled for noisy local terminal commands, but bypass it for raw logs
   whenever a failure needs full context.
+- Keep `~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` stable: an external workspace
+  synchronizes them over the `hermes-vps` SSH alias, with the VPS as source of truth.
 - Prefer idempotent scripts in `scripts/` over ad-hoc SSH.
 - Never rewrite git history, force-push, or change repo visibility without explicit user approval.
 
@@ -94,6 +96,25 @@ make verify-channels HOST=hermes-vps
   root cause, guardrail, and verification. Do not claim completion until the guardrail is automated
   or tied to a repo command.
 - Use local `.semgrep.yml` rules; do not depend on moving remote Semgrep packs.
+
+## Related projects (the three-repo system)
+
+This repo deploys the internship logging tool and runs the chat agent that logs
+from messages. Two sibling repos complete the system; they are separate projects
+(own gates/tests) — edit their docs only when asked, and never commit without
+instruction.
+
+- **magang-tool** (`~/Documents/Internship/Semester 7/magang-tool`) — the `magang`
+  CLI + official document templates. `make configure-magang` / `make verify-magang`
+  deploy and check it on the VPS; the managed SOUL block lives at
+  `infra/hermes-soul-magang.md`. Deployment **excludes** `data/` and `config.yaml`
+  so logs are never clobbered — keep those excludes (see below).
+- **InterBio/2026** (`~/Documents/Internship/InterBio/2026`) — the internship work
+  product. It **consumes the magang data read-only**, syncing
+  `hermes-vps:~/magang/{data/,config.yaml}` over the `hermes-vps` alias (rsync,
+  `--update`, no `--delete`; VPS is source of truth). Treat `~/magang/data/pekan-NN.yaml`
+  and `~/magang/config.yaml` as a **stable interface**: don't relocate or rename
+  them without updating that consumer. It does not message the Hermes agent.
 
 ## Agent-Specific Notes
 

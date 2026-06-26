@@ -184,3 +184,17 @@ use broad `pkill -f` inside an SSH command whose argv contains the same literal 
 
 Verification: `make verify-runtime HOST=hermes-vps`; confirm the retired channel process and state
 paths are absent with a read-only runtime inventory.
+
+## HERMES-014 Magang Config Permission Drift Was Not Repaired
+
+Impact: The live `~/magang/config.yaml` was mode `0644`, allowing users other than its owner to read
+private internship configuration and breaking the documented sync-interface permission invariant.
+
+Root Cause: `scripts/configure-magang.sh` applied mode `0600` only when it first created
+`config.yaml`; later permission drift survived every idempotent configuration run.
+
+Guardrail: `scripts/configure-magang.sh` now reapplies mode `0600` on every run, and
+`scripts/verify-magang.sh` fails with an explicit error unless the live file has that mode.
+
+Verification: `make configure-magang HOST=hermes-vps`, followed by
+`make verify-magang HOST=hermes-vps`.

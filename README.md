@@ -119,6 +119,13 @@ make verify-magang HOST=hermes-vps
 Deployment preserves remote `config.yaml`, `data/`, and `out/`. The managed SOUL block is replaced
 idempotently without overwriting unrelated persona instructions.
 
+A separate **InterBio/2026** workspace (`~/Documents/Internship/InterBio/2026`) consumes these logs
+read-only: it syncs `hermes-vps:~/magang/{data/,config.yaml}` over the `hermes-vps` alias (rsync,
+`--update`, no `--delete`; this VPS is the source of truth) to run local checks and build docs. So
+`~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` are a **stable interface** — the deploy
+excludes for `data/`/`config.yaml` above are deliberate and must stay. See that repo's `AGENTS.md`
+for the consumer side.
+
 ## Quality gate
 
 Every commit runs `pre-commit` (shellcheck, shfmt, yamllint, gitleaks, current-design validation,

@@ -4,6 +4,10 @@ The host CLI `magang` records internship work and generates the official Log Mag
 Acuan documents as DOCX and PDF. Use it automatically when the user discusses internship
 administration; do not require the user to know commands or flags.
 
+The VPS `~/magang` directory is the source of truth for internship records. Keep
+`~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` stable because the
+InterBio workspace syncs those paths over the `hermes-vps` SSH alias.
+
 - Work entry: `magang log add --date <DATE> --start <HH:MM> --end <HH:MM> --title "<title>"`
   with repeated `--detail "<detail>"` arguments when useful.
 - Review: `magang log show [--week N]`
