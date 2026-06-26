@@ -33,7 +33,9 @@ Read [docs/architecture.md](docs/architecture.md) before changing behavior.
 - Keep RTK (`rtk-rewrite`) enabled for noisy local terminal commands, but bypass it for raw logs
   whenever a failure needs full context.
 - Keep `~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` stable: an external workspace
-  synchronizes them over the `hermes-vps` SSH alias, with the VPS as source of truth.
+  synchronizes them over the `hermes-vps` SSH alias, with the VPS as source of truth. It pulls
+  data/config down and may push local agent log writes back up to `~/magang/data/`; `config.yaml`
+  is never pushed from the laptop.
 - Prefer idempotent scripts in `scripts/` over ad-hoc SSH.
 - Never rewrite git history, force-push, or change repo visibility without explicit user approval.
 
@@ -110,11 +112,13 @@ instruction.
   `infra/hermes-soul-magang.md`. Deployment **excludes** `data/` and `config.yaml`
   so logs are never clobbered — keep those excludes (see below).
 - **InterBio/2026** (`~/Documents/Internship/InterBio/2026`) — the internship work
-  product. It **consumes the magang data read-only**, syncing
-  `hermes-vps:~/magang/{data/,config.yaml}` over the `hermes-vps` alias (rsync,
-  `--update`, no `--delete`; VPS is source of truth). Treat `~/magang/data/pekan-NN.yaml`
-  and `~/magang/config.yaml` as a **stable interface**: don't relocate or rename
-  them without updating that consumer. It does not message the Hermes agent.
+  product. It syncs `hermes-vps:~/magang/{data/,config.yaml}` down over the
+  `hermes-vps` alias and, when agents log locally through its proxy, pushes
+  changed `data/pekan-NN.yaml` files back up (rsync `--update`, no `--delete`;
+  VPS is source of truth; `config.yaml` is pull-only). Treat
+  `~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` as a **stable
+  interface**: don't relocate or rename them without updating that consumer. It
+  does not message the Hermes agent.
 
 ## Agent-Specific Notes
 

@@ -6,7 +6,9 @@ administration; do not require the user to know commands or flags.
 
 The VPS `~/magang` directory is the source of truth for internship records. Keep
 `~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` stable because the
-InterBio workspace syncs those paths over the `hermes-vps` SSH alias.
+InterBio workspace syncs those paths over the `hermes-vps` SSH alias. That
+workspace pulls data/config down and may push local agent log writes back to
+`~/magang/data/`; `config.yaml` remains pull-only from the laptop side.
 
 - Work entry: `magang log add --date <DATE> --start <HH:MM> --end <HH:MM> --title "<title>"`
   with repeated `--detail "<detail>"` arguments when useful.

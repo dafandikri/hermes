@@ -57,9 +57,9 @@ Natural-language work update ─▶ Hermes ─▶ magang CLI ─▶ YAML log ─
   DOCX templates are deliberately excluded from this public infrastructure repository.
 - The VPS is the source of truth for internship records. An external laptop workspace synchronizes
   `~/magang/data/pekan-NN.yaml` and `~/magang/config.yaml` over the `hermes-vps` SSH alias with
-  `rsync --update` and no `--delete`; it may read and write log files, but only pulls
-  `config.yaml`. These paths are a stable interface and must not be relocated or renamed without
-  updating that consumer.
+  `rsync --update` and no `--delete`; it pulls data/config down, may push local agent log writes
+  back up to `~/magang/data/`, and only pulls `config.yaml`. These paths are a stable interface and
+  must not be relocated or renamed without updating that consumer.
 - `scripts/configure-magang.sh` idempotently syncs application code while preserving
   `config.yaml`, `data/`, and `out/`; installs the Python environment and headless LibreOffice; and
   injects `infra/hermes-soul-magang.md` as a managed block in `~/.hermes/SOUL.md`.
